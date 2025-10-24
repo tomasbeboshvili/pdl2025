@@ -47,7 +47,7 @@ Tras analizar un programa fuente, el procesador crea los siguientes ficheros den
 
 ## 🗂️ Estructura del proyecto
 
----
+```
 .
 ├── README.md
 ├── programa.javascript # Fuente a analizar
@@ -69,7 +69,7 @@ Tras analizar un programa fuente, el procesador crea los siguientes ficheros den
 ├── tokens.txt
 ├── tabla_simbolos.txt
 └── errores.txt
----
+```
 
 ## ⚙️ Compilación y ejecución
 
