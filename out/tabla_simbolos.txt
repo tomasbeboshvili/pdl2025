@@ -1,0 +1,6 @@
+Tabla de Símbolos:
+id: 1 | a
+id: 2 | b
+id: 3 | s
+id: 4 | void
+id: 5 | saludar

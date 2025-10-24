@@ -1,0 +1,301 @@
+package lexico;
+
+import java.util.*;
+
+/**
+ * Analizador léxico que recibe una cadena de entrada
+ * y la divide en tokens según la tabla de tokens 2025.
+ * Genera una lista de tokens y una tabla de símbolos.
+ */
+public class Lexer {
+
+    private final String input;                   // Código fuente de entrada
+    private final List<Token> tokens = new ArrayList<>();  // Lista de tokens generados
+    private final List<Symbol> symbolTable = new ArrayList<>(); // Tabla de símbolos
+    private int pos = 0;                          // Posición actual en la cadena
+    private int line = 1;                         // Línea actual
+    private int column = 1;                       // Columna actual
+    private int tokenStartColumn = 1;             // Columna donde comienza el token
+
+    /** Palabras reservadas del lenguaje */
+    private static final Map<String, TokenType> keywords = new HashMap<>();
+
+    static {
+        keywords.put("boolean", TokenType.PRboolean);
+        keywords.put("float", TokenType.PRfloat);
+        keywords.put("for", TokenType.PRfor);
+        keywords.put("function", TokenType.PRfun);
+        keywords.put("if", TokenType.PRif);
+        keywords.put("int", TokenType.PRint);
+        keywords.put("let", TokenType.PRlet);
+        keywords.put("read", TokenType.PRread);
+        keywords.put("return", TokenType.PRreturn);
+        keywords.put("string", TokenType.PRstring);
+        keywords.put("true", TokenType.trueConst);
+        keywords.put("false", TokenType.falseConst);
+    }
+
+    /**
+     * Constructor del analizador léxico.
+     * @param input texto fuente que se analizará.
+     */
+    public Lexer(String input) {
+        this.input = input;
+    }
+
+    /**
+     * Analiza todo el texto de entrada y genera los tokens correspondientes.
+     * @return lista de tokens encontrados en el código fuente.
+     */
+    public List<Token> tokenize() {
+        while (pos < input.length()) {
+            char current = peek();
+
+            if (current == '\n') {
+                line++;
+                column = 1;
+                advance();
+            } else if (Character.isWhitespace(current)) {
+                advance();
+            } else if (Character.isLetter(current) || current == '_') {
+                tokenStartColumn = column;
+                lexIdentifierOrKeyword();
+            } else if (Character.isDigit(current)) {
+                tokenStartColumn = column;
+                lexNumber();
+            } else {
+                tokenStartColumn = column;
+                switch (current) {
+                    case '+':
+                        advance();
+                        addToken(TokenType.opSuma, "+");
+                        break;
+
+                    case '=':
+                        advance();
+                        if (match('=')) addToken(TokenType.opIgual, "==");
+                        else addToken(TokenType.igual, "=");
+                        break;
+
+                    case '&':
+                        advance();
+                        if (match('&')) addToken(TokenType.opAnd, "&&");
+                        else error("Símbolo no permitido '&'");
+                        break;
+
+					case '/':
+						advance();
+						if (match('=')) {
+							addToken(TokenType.asigDiv, "/=");
+						} else if (match('/')) {
+							skipLineComment();  // <-- nuevo método
+						} else {
+							error("Símbolo no permitido '/'");
+						}
+					break;
+
+
+                    case ',':
+                        advance(); addToken(TokenType.coma, ","); break;
+                    case ';':
+                        advance(); addToken(TokenType.puntoComa, ";"); break;
+                    case '(':
+                        advance(); addToken(TokenType.parenIzq, "("); break;
+                    case ')':
+                        advance(); addToken(TokenType.parenDcha, ")"); break;
+                    case '{':
+                        advance(); addToken(TokenType.llaveIzq, "{"); break;
+                    case '}':
+                        advance(); addToken(TokenType.llaveDcha, "}"); break;
+                    case '\'':
+                        lexString();
+                        break;
+                    default:
+                        error("Símbolo no reconocido: '" + current + "'");
+                        advance();
+                        break;
+                }
+            }
+        }
+
+        tokens.add(new Token(TokenType.finFich, "", line, column, column));
+        return tokens;
+    }
+
+    /**
+     * Reconoce identificadores o palabras reservadas.
+     * Si el lexema no está en las palabras clave, se agrega a la tabla de símbolos.
+     */
+    private void lexIdentifierOrKeyword() {
+        int start = pos;
+        while (pos < input.length() &&
+                (Character.isLetterOrDigit(peek()) || peek() == '_')) {
+            advance();
+        }
+        String lexeme = input.substring(start, pos);
+        TokenType type = keywords.getOrDefault(lexeme, TokenType.id);
+        addToken(type, lexeme);
+
+        if (type == TokenType.id && !findSymbol(lexeme)) {
+            symbolTable.add(new Symbol(lexeme));
+        }
+    }
+
+    /**
+     * Reconoce números enteros y reales (con punto decimal).
+     * @throws NumberFormatException si el formato es inválido.
+     */
+    private void lexNumber() {
+        int start = pos;
+        boolean isReal = false;
+
+        while (pos < input.length() && Character.isDigit(peek())) advance();
+
+        if (peek() == '.') {
+            isReal = true;
+            advance();
+            while (pos < input.length() && Character.isDigit(peek())) advance();
+        }
+
+        String lexeme = input.substring(start, pos);
+        try {
+            if (isReal) {
+                double value = Double.parseDouble(lexeme);
+                if (value > 117549436.0) error("Número real demasiado grande: " + lexeme);
+                else addToken(TokenType.real, lexeme);
+            } else {
+                int value = Integer.parseInt(lexeme);
+                if (value > 32767) error("Número entero demasiado grande: " + lexeme);
+                else addToken(TokenType.entero, lexeme);
+            }
+        } catch (NumberFormatException e) {
+            error("Número inválido: " + lexeme);
+        }
+    }
+
+    /**
+     * Reconoce cadenas de texto delimitadas por comillas simples ('texto').
+     * Genera error si la cadena no se cierra.
+     */
+    private void lexString() {
+        advance(); // Salta la comilla inicial
+        StringBuilder sb = new StringBuilder();
+
+        while (pos < input.length() && peek() != '\'') {
+            if (peek() == '\n') line++;
+            sb.append(peek());
+            advance();
+        }
+
+        if (peek() == '\'') {
+            advance();
+            addToken(TokenType.cadena, sb.toString());
+        } else {
+            error("Cadena no cerrada");
+        }
+    }
+
+    /**
+     * Omite comentarios de bloque del tipo /* ... *\/.
+     * Los ignora completamente sin generar tokens.
+     */
+    private void skipComment() {
+        advance(); // salta '*'
+        while (pos < input.length()) {
+            if (peek() == '*' && peek(1) == '/') {
+                advance(); advance();
+                break;
+            }
+            if (peek() == '\n') line++;
+            advance();
+        }
+    }
+
+    /**
+     * Verifica si un lexema ya está en la tabla de símbolos.
+     * @param lexeme identificador a buscar.
+     * @return true si ya está registrado, false si no.
+     */
+    private boolean findSymbol(String lexeme) {
+        for (Symbol s : symbolTable)
+            if (s.getLexema().equals(lexeme)) return true;
+        return false;
+    }
+
+    /**
+     * Añade un nuevo token a la lista.
+     * @param type tipo de token (según enum TokenType)
+     * @param lexeme texto original del token
+     */
+    private void addToken(TokenType type, String lexeme) {
+        int endCol = tokenStartColumn + lexeme.length() - 1;
+        tokens.add(new Token(type, lexeme, line, tokenStartColumn, endCol));
+    }
+
+    /**
+     * Muestra un mensaje de error léxico en consola.
+     * @param msg descripción del error.
+     */
+    private void error(String msg) {
+        System.err.println("[ERROR - Línea " + line + "]: " + msg);
+    }
+
+    /** @return carácter actual sin avanzar el cursor. */
+    private char peek() {
+        return pos < input.length() ? input.charAt(pos) : '\0';
+    }
+
+    /**
+     * Lee un carácter adelantado sin mover la posición.
+     * @param ahead cantidad de posiciones hacia adelante.
+     * @return carácter leído o '\0' si está fuera de rango.
+     */
+    private char peek(int ahead) {
+        return (pos + ahead) < input.length() ? input.charAt(pos + ahead) : '\0';
+    }
+
+    /** Avanza una posición en el texto fuente. */
+    private void advance() {
+        pos++;
+        column++;
+    }
+
+    /**
+     * Verifica si el siguiente carácter coincide con el esperado.
+     * Si es así, avanza el cursor.
+     * @param expected carácter esperado.
+     * @return true si coincide, false si no.
+     */
+    private boolean match(char expected) {
+        if (peek() == expected) {
+            advance();
+            return true;
+        }
+        return false;
+    }
+
+    /** @return tabla de símbolos generada durante el análisis. */
+    public List<Symbol> getSymbolTable() {
+        return symbolTable;
+    }
+
+    /** @return representación en texto de la tabla de símbolos. */
+    public String printSymbolTable() {
+        StringBuilder sb = new StringBuilder();
+        int i = 1;
+        sb.append("Tabla de Símbolos:\n");
+        for (Symbol s : symbolTable)
+            sb.append("id: ").append(i++).append(" | ").append(s).append("\n");
+        return sb.toString();
+    }
+
+	/**
+	 * Omite comentarios de línea del tipo // hasta el salto de línea o EOF.
+	 */
+	private void skipLineComment() {
+		while (pos < input.length() && peek() != '\n') {
+			advance();
+		}
+	}
+
+}
