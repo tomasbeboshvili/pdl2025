@@ -11,7 +11,7 @@ public class Lexer {
 
     private final String input;                   // Código fuente de entrada
     private final List<Token> tokens = new ArrayList<>();  // Lista de tokens generados
-    private final List<Symbol> symbolTable = new ArrayList<>(); // Tabla de símbolos
+    private final LinkedHashMap<String, Integer> symbolTable = new LinkedHashMap<>(); // Tabla de símbolos con posiciones
     private int pos = 0;                          // Posición actual en la cadena
     private int line = 1;                         // Línea actual
     private int column = 1;                       // Columna actual
@@ -31,6 +31,7 @@ public class Lexer {
         keywords.put("read", TokenType.PRread);
         keywords.put("return", TokenType.PRreturn);
         keywords.put("string", TokenType.PRstring);
+        keywords.put("void", TokenType.PRvoid);
         keywords.put("true", TokenType.trueConst);
         keywords.put("false", TokenType.falseConst);
     }
@@ -118,7 +119,7 @@ public class Lexer {
             }
         }
 
-        tokens.add(new Token(TokenType.finFich, "", line, column, column));
+        tokens.add(new Token(TokenType.finFich, "", line, column, column, null));
         return tokens;
     }
 
@@ -134,10 +135,11 @@ public class Lexer {
         }
         String lexeme = input.substring(start, pos);
         TokenType type = keywords.getOrDefault(lexeme, TokenType.id);
-        addToken(type, lexeme);
-
-        if (type == TokenType.id && !findSymbol(lexeme)) {
-            symbolTable.add(new Symbol(lexeme));
+        if (type == TokenType.id) {
+            int position = symbolTable.computeIfAbsent(lexeme, key -> symbolTable.size() + 1);
+            addToken(type, lexeme, position);
+        } else {
+            addToken(type, lexeme);
         }
     }
 
@@ -212,24 +214,20 @@ public class Lexer {
     }
 
     /**
-     * Verifica si un lexema ya está en la tabla de símbolos.
-     * @param lexeme identificador a buscar.
-     * @return true si ya está registrado, false si no.
-     */
-    private boolean findSymbol(String lexeme) {
-        for (Symbol s : symbolTable)
-            if (s.getLexema().equals(lexeme)) return true;
-        return false;
-    }
-
-    /**
      * Añade un nuevo token a la lista.
      * @param type tipo de token (según enum TokenType)
      * @param lexeme texto original del token
      */
     private void addToken(TokenType type, String lexeme) {
+        addToken(type, lexeme, null);
+    }
+
+    /**
+     * Añade un token permitiendo indicar la posición en la tabla de símbolos.
+     */
+    private void addToken(TokenType type, String lexeme, Integer symbolIndex) {
         int endCol = tokenStartColumn + lexeme.length() - 1;
-        tokens.add(new Token(type, lexeme, line, tokenStartColumn, endCol));
+        tokens.add(new Token(type, lexeme, line, tokenStartColumn, endCol, symbolIndex));
     }
 
     /**
@@ -275,17 +273,17 @@ public class Lexer {
     }
 
     /** @return tabla de símbolos generada durante el análisis. */
-    public List<Symbol> getSymbolTable() {
+    public Map<String, Integer> getSymbolTable() {
         return symbolTable;
     }
 
     /** @return representación en texto de la tabla de símbolos. */
     public String printSymbolTable() {
         StringBuilder sb = new StringBuilder();
-        int i = 1;
         sb.append("Tabla de Símbolos:\n");
-        for (Symbol s : symbolTable)
-            sb.append("id: ").append(i++).append(" | ").append(s).append("\n");
+        for (Map.Entry<String, Integer> entry : symbolTable.entrySet()) {
+            sb.append(entry.getKey()).append("|").append(entry.getValue()).append("\n");
+        }
         return sb.toString();
     }
 

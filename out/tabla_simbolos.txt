@@ -1,6 +1,5 @@
 Tabla de Símbolos:
-id: 1 | a
-id: 2 | b
-id: 3 | s
-id: 4 | void
-id: 5 | saludar
+a|1
+b|2
+s|3
+saludar|4

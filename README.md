@@ -1,13 +1,20 @@
-# 🧩 Procesadores de Lenguajes – Analizador Léxico (Grupo 15)
+# Procesadores de Lenguajes – Analizador Léxico (Grupo 15)
+- [Procesadores de Lenguajes – Analizador Léxico (Grupo 15)](#procesadores-de-lenguajes--analizador-léxico-grupo-15)
+	- [Descripción General](#descripción-general)
+	- [Grupo 15 – Opciones asignadas](#grupo-15--opciones-asignadas)
+	- [Funcionalidad](#funcionalidad)
+	- [Ficheros generados](#ficheros-generados)
+	- [Estructura del proyecto](#estructura-del-proyecto)
+	- [Compilación y ejecución](#compilación-y-ejecución)
 
-## 📘 Descripción General
+## Descripción General
 Este proyecto implementa el **Analizador Léxico y la Tabla de Símbolos** para el lenguaje **MyJS**, como parte de la asignatura **Procesadores de Lenguajes** (ETSII – UPM, curso 2025/2026).
 
 El analizador identifica los **tokens** definidos para la versión del lenguaje asignada al **Grupo 15**, genera los ficheros de salida requeridos y reporta los errores léxicos detectados.
 
 ---
 
-## 🧑‍💻 Grupo 15 – Opciones asignadas
+## Grupo 15 – Opciones asignadas
 
 | Categoría | Opción asignada | Implementado |
 |------------|------------------|---------------|
@@ -19,7 +26,7 @@ El analizador identifica los **tokens** definidos para la versión del lenguaje 
 
 ---
 
-## 🧠 Funcionalidad
+## Funcionalidad
 
 El **analizador léxico (`Lexer.java`)**:
 - Lee un archivo fuente con extensión `.javascript` o `.txt`.
@@ -33,7 +40,7 @@ El **analizador léxico (`Lexer.java`)**:
 
 ---
 
-## 🧾 Ficheros generados
+## Ficheros generados
 
 Tras analizar un programa fuente, el procesador crea los siguientes ficheros dentro de `/out`:
 
@@ -45,7 +52,7 @@ Tras analizar un programa fuente, el procesador crea los siguientes ficheros den
 
 ---
 
-## 🗂️ Estructura del proyecto
+## Estructura del proyecto
 
 ```
 .
@@ -71,7 +78,7 @@ Tras analizar un programa fuente, el procesador crea los siguientes ficheros den
 └── errores.txt
 ```
 
-## ⚙️ Compilación y ejecución
+## Compilación y ejecución
 
 Desde la raíz del proyecto:
 

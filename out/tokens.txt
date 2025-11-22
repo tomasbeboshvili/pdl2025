@@ -1,56 +1,56 @@
 <PRlet, let>
 <PRint, int>
-<id, a>
+<a,1>
 <puntoComa, ;>
 <PRlet, let>
 <PRfloat, float>
-<id, b>
+<b,2>
 <puntoComa, ;>
-<id, a>
+<a,1>
 <igual, =>
 <entero, 1>
 <puntoComa, ;>
-<id, b>
+<b,2>
 <igual, =>
 <real, 10.5>
 <puntoComa, ;>
 <PRfor, for>
 <parenIzq, (>
-<id, a>
+<a,1>
 <igual, =>
 <entero, 1>
 <puntoComa, ;>
-<id, a>
+<a,1>
 <igual, =>
-<id, a>
+<a,1>
 <opSuma, +>
 <entero, 1>
 <puntoComa, ;>
-<id, a>
+<a,1>
 <igual, =>
-<id, a>
+<a,1>
 <opSuma, +>
 <entero, 1>
 <parenDcha, )>
 <llaveIzq, {>
-<id, b>
+<b,2>
 <asigDiv, /=>
 <entero, 2>
 <puntoComa, ;>
 <llaveDcha, }>
 <PRlet, let>
 <PRstring, string>
-<id, s>
+<s,3>
 <puntoComa, ;>
-<id, s>
+<s,3>
 <igual, =>
 <cadena, Hola Mundo>
 <puntoComa, ;>
 <PRfun, function>
-<id, void>
-<id, saludar>
+<PRvoid, void>
+<saludar,4>
 <parenIzq, (>
-<id, void>
+<PRvoid, void>
 <parenDcha, )>
 <llaveIzq, {>
 <PRreturn, return>

@@ -6,6 +6,7 @@ package lexico;
 public class Token {
     private final TokenType type;
     private final String lexeme;
+    private final Integer symbolIndex;
     private final int line;
     private final int colStart;
     private final int colEnd;
@@ -13,13 +14,15 @@ public class Token {
     /**
      * @param type tipo del token (según TokenType)
      * @param lexeme texto asociado al token
+     * @param symbolIndex posición del lexema en la tabla de símbolos (solo para ids)
      * @param line línea donde se encontró
      * @param colStart columna inicial
      * @param colEnd columna final
      */
-    public Token(TokenType type, String lexeme, int line, int colStart, int colEnd) {
+    public Token(TokenType type, String lexeme, int line, int colStart, int colEnd, Integer symbolIndex) {
         this.type = type;
         this.lexeme = lexeme;
+        this.symbolIndex = symbolIndex;
         this.line = line;
         this.colStart = colStart;
         this.colEnd = colEnd;
@@ -27,6 +30,9 @@ public class Token {
 
     @Override
     public String toString() {
+        if (type == TokenType.id && symbolIndex != null) {
+            return "<" + lexeme + "," + symbolIndex + ">";
+        }
         return "<" + type + ", " + lexeme + ">";
     }
 }

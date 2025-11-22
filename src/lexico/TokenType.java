@@ -5,7 +5,7 @@ package lexico;
  */
 public enum TokenType {
     // Palabras reservadas
-    PRboolean, PRfloat, PRfor, PRfun, PRif, PRint, PRlet, PRread, PRreturn, PRstring,
+    PRboolean, PRfloat, PRfor, PRfun, PRif, PRint, PRlet, PRread, PRreturn, PRstring, PRvoid,
     trueConst, falseConst,
 
     // Tipos de constantes e identificadores
