@@ -6,7 +6,7 @@ a = 1;
 b = 10.5;
 
 // Bucle for con asignación simple y con división (/=)
-for (a = 1; a = a + 1; a = a + 1) {
+for (a = 1; a == 5; a = a + 1) {
     b /= 2;
 }
 
@@ -15,6 +15,6 @@ let string s;
 s = 'Hola Mundo';
 
 // Llamada a función y retorno
-function void saludar(void) {
+function void saludar() {
     return;
 }

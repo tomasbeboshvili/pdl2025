@@ -19,7 +19,7 @@ El analizador identifica los **tokens** definidos para la versión del lenguaje 
 | Categoría | Opción asignada | Implementado |
 |------------|------------------|---------------|
 | **Sentencia repetitiva** | `for` | ✅ |
-| **Técnica de análisis sintáctico** | Descendente con tablas | (fase 2) |
+| **Técnica de análisis sintáctico** | Descendente con tablas | (fase 3) |
 | **Operador especial** | Asignación con división `/=` | ✅ |
 | **Comentarios** | Comentarios de línea `//` | ✅ |
 | **Cadenas** | Comillas simples `' '` | ✅ |
@@ -42,7 +42,7 @@ El **analizador léxico (`Lexer.java`)**:
 
 ## Ficheros generados
 
-Tras analizar un programa fuente, el procesador crea los siguientes ficheros dentro de `/out`:
+Tras analizar un programa fuente, el procesador crea los siguientes ficheros dentro de `src/lexico/out`:
 
 | Fichero | Descripción |
 |----------|-------------|
@@ -57,25 +57,25 @@ Tras analizar un programa fuente, el procesador crea los siguientes ficheros den
 ```
 .
 ├── README.md
-├── programa.javascript # Fuente a analizar
 ├── src/
-│ └── lexico/
-│ ├── Lexer.java
-│ ├── Main.java
-│ ├── Symbol.java
-│ ├── Token.java
-│ └── TokenType.java
+│   ├── lexico/
+│   │   ├── Lexer.java
+│   │   ├── Main.java
+│   │   ├── Token.java
+│   │   ├── programa.javascript # Fuente a analizar
+│   │   └── out/
+│   │       ├── tokens.txt
+│   │       ├── tabla_simbolos.txt
+│   │       └── errores.txt
+│   └── Sintactico/
+│       ├── ASTNode.java
+│       ├── Parser.java
+│       ├── Main.java
+│       └── out/
+│           └── ast.dot
 ├── bin/
-│ └── lexico/
-│ ├── Lexer.class
-│ ├── Main.class
-│ ├── Symbol.class
-│ ├── Token.class
-│ └── TokenType.class
-└── out/
-├── tokens.txt
-├── tabla_simbolos.txt
-└── errores.txt
+│   └── ...
+└── analizador_paquete.zip
 ```
 
 ## Compilación y ejecución
@@ -84,8 +84,11 @@ Desde la raíz del proyecto:
 
 ```
 # Compilar
-javac -d bin src/lexico/*.java
+javac -d bin src/lexico/*.java src/Sintactico/*.java
 
 # Ejecutar
 java -cp bin lexico.Main
+
+# Ejecutar sintáctico (usa src/lexico/programa.javascript por defecto o pasa un archivo)
+java -cp bin Sintactico.Main [ruta_al_fuente_opcional]
 ```

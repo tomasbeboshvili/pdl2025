@@ -3,9 +3,8 @@ package lexico;
 import java.util.*;
 
 /**
- * Analizador léxico que recibe una cadena de entrada
- * y la divide en tokens según la tabla de tokens 2025.
- * Genera una lista de tokens y una tabla de símbolos.
+ * Analizador léxico que devuelve tokens con tipos en texto
+ * directamente alineados con la gramática del analizador sintáctico.
  */
 public class Lexer {
 
@@ -17,23 +16,24 @@ public class Lexer {
     private int column = 1;                       // Columna actual
     private int tokenStartColumn = 1;             // Columna donde comienza el token
 
-    /** Palabras reservadas del lenguaje */
-    private static final Map<String, TokenType> keywords = new HashMap<>();
+    /** Palabras reservadas del lenguaje -> tipo de token resultante */
+    private static final Map<String, String> keywords = new HashMap<>();
 
     static {
-        keywords.put("boolean", TokenType.PRboolean);
-        keywords.put("float", TokenType.PRfloat);
-        keywords.put("for", TokenType.PRfor);
-        keywords.put("function", TokenType.PRfun);
-        keywords.put("if", TokenType.PRif);
-        keywords.put("int", TokenType.PRint);
-        keywords.put("let", TokenType.PRlet);
-        keywords.put("read", TokenType.PRread);
-        keywords.put("return", TokenType.PRreturn);
-        keywords.put("string", TokenType.PRstring);
-        keywords.put("void", TokenType.PRvoid);
-        keywords.put("true", TokenType.trueConst);
-        keywords.put("false", TokenType.falseConst);
+        keywords.put("boolean", "boolean");
+        keywords.put("float", "float");
+        keywords.put("for", "for");
+        keywords.put("function", "function");
+        keywords.put("if", "if");
+        keywords.put("int", "int");
+        keywords.put("let", "let");
+        keywords.put("read", "read");
+        keywords.put("return", "return");
+        keywords.put("string", "string");
+        keywords.put("void", "void");
+        keywords.put("true", "true");
+        keywords.put("false", "false");
+        keywords.put("write", "write");
     }
 
     /**
@@ -69,27 +69,31 @@ public class Lexer {
                 switch (current) {
                     case '+':
                         advance();
-                        addToken(TokenType.opSuma, "+");
+                        if (match('+')) {
+                            addToken("++", "++");
+                        } else {
+                            addToken("+", "+");
+                        }
                         break;
 
                     case '=':
                         advance();
-                        if (match('=')) addToken(TokenType.opIgual, "==");
-                        else addToken(TokenType.igual, "=");
+                        if (match('=')) addToken("==", "==");
+                        else addToken("=", "=");
                         break;
 
                     case '&':
                         advance();
-                        if (match('&')) addToken(TokenType.opAnd, "&&");
+                        if (match('&')) addToken("&&", "&&");
                         else error("Símbolo no permitido '&'");
                         break;
 
 					case '/':
 						advance();
 						if (match('=')) {
-							addToken(TokenType.asigDiv, "/=");
+							addToken("/=", "/=");
 						} else if (match('/')) {
-							skipLineComment();  // <-- nuevo método
+							skipLineComment();  // Comentario de línea
 						} else {
 							error("Símbolo no permitido '/'");
 						}
@@ -97,17 +101,17 @@ public class Lexer {
 
 
                     case ',':
-                        advance(); addToken(TokenType.coma, ","); break;
+                        advance(); addToken(",", ","); break;
                     case ';':
-                        advance(); addToken(TokenType.puntoComa, ";"); break;
+                        advance(); addToken(";", ";"); break;
                     case '(':
-                        advance(); addToken(TokenType.parenIzq, "("); break;
+                        advance(); addToken("(", "("); break;
                     case ')':
-                        advance(); addToken(TokenType.parenDcha, ")"); break;
+                        advance(); addToken(")", ")"); break;
                     case '{':
-                        advance(); addToken(TokenType.llaveIzq, "{"); break;
+                        advance(); addToken("{", "{"); break;
                     case '}':
-                        advance(); addToken(TokenType.llaveDcha, "}"); break;
+                        advance(); addToken("}", "}"); break;
                     case '\'':
                         lexString();
                         break;
@@ -119,7 +123,7 @@ public class Lexer {
             }
         }
 
-        tokens.add(new Token(TokenType.finFich, "", line, column, column, null));
+        tokens.add(new Token("EOF", "", line, column, column, null));
         return tokens;
     }
 
@@ -134,8 +138,8 @@ public class Lexer {
             advance();
         }
         String lexeme = input.substring(start, pos);
-        TokenType type = keywords.getOrDefault(lexeme, TokenType.id);
-        if (type == TokenType.id) {
+        String type = keywords.getOrDefault(lexeme, "id");
+        if ("id".equals(type)) {
             int position = symbolTable.computeIfAbsent(lexeme, key -> symbolTable.size() + 1);
             addToken(type, lexeme, position);
         } else {
@@ -164,11 +168,11 @@ public class Lexer {
             if (isReal) {
                 double value = Double.parseDouble(lexeme);
                 if (value > 117549436.0) error("Número real demasiado grande: " + lexeme);
-                else addToken(TokenType.real, lexeme);
+                else addToken("real", lexeme);
             } else {
                 int value = Integer.parseInt(lexeme);
                 if (value > 32767) error("Número entero demasiado grande: " + lexeme);
-                else addToken(TokenType.entero, lexeme);
+                else addToken("ent", lexeme);
             }
         } catch (NumberFormatException e) {
             error("Número inválido: " + lexeme);
@@ -191,7 +195,7 @@ public class Lexer {
 
         if (peek() == '\'') {
             advance();
-            addToken(TokenType.cadena, sb.toString());
+            addToken("cad", sb.toString());
         } else {
             error("Cadena no cerrada");
         }
@@ -215,17 +219,17 @@ public class Lexer {
 
     /**
      * Añade un nuevo token a la lista.
-     * @param type tipo de token (según enum TokenType)
+     * @param type tipo de token textual
      * @param lexeme texto original del token
      */
-    private void addToken(TokenType type, String lexeme) {
+    private void addToken(String type, String lexeme) {
         addToken(type, lexeme, null);
     }
 
     /**
      * Añade un token permitiendo indicar la posición en la tabla de símbolos.
      */
-    private void addToken(TokenType type, String lexeme, Integer symbolIndex) {
+    private void addToken(String type, String lexeme, Integer symbolIndex) {
         int endCol = tokenStartColumn + lexeme.length() - 1;
         tokens.add(new Token(type, lexeme, line, tokenStartColumn, endCol, symbolIndex));
     }

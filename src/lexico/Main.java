@@ -18,13 +18,14 @@ import java.util.List;
 public class Main {
 
     public static void main(String[] args) {
-        // Ruta del archivo fuente (puedes cambiarla o pasarla como argumento)
-        String inputFile = "programa.javascript";
-        String outputDir = "out/";
+        // Base del paquete "lexico" dentro de src para fuentes y salidas
+        Path baseDir = Paths.get("src", "lexico");
+        Path inputFile = baseDir.resolve("programa.javascript");
+        Path outputDir = baseDir.resolve("out");
 
         // Crear carpeta de salida si no existe
         try {
-            Files.createDirectories(Paths.get(outputDir));
+            Files.createDirectories(outputDir);
         } catch (IOException e) {
             System.err.println("Error creando carpeta de salida: " + e.getMessage());
             return;
@@ -33,7 +34,7 @@ public class Main {
         // Leer el archivo fuente
         String source;
         try {
-            source = Files.readString(Paths.get(inputFile));
+            source = Files.readString(inputFile);
         } catch (IOException e) {
             System.err.println("No se pudo leer el archivo fuente: " + inputFile);
             return;
@@ -53,7 +54,7 @@ public class Main {
         System.setErr(originalErr);
 
         // Guardar tokens en archivo
-        try (BufferedWriter writer = Files.newBufferedWriter(Paths.get(outputDir + "tokens.txt"))) {
+        try (BufferedWriter writer = Files.newBufferedWriter(outputDir.resolve("tokens.txt"))) {
             for (Token token : tokens) {
                 writer.write(token.toString());
                 writer.newLine();
@@ -63,7 +64,7 @@ public class Main {
         }
 
         // Guardar tabla de símbolos
-        try (BufferedWriter writer = Files.newBufferedWriter(Paths.get(outputDir + "tabla_simbolos.txt"))) {
+        try (BufferedWriter writer = Files.newBufferedWriter(outputDir.resolve("tabla_simbolos.txt"))) {
             writer.write(lexer.printSymbolTable());
         } catch (IOException e) {
             System.err.println("Error escribiendo tabla_simbolos.txt: " + e.getMessage());
@@ -71,7 +72,7 @@ public class Main {
 
         // Guardar errores (si los hay)
         String errores = errorStream.toString().trim();
-        try (BufferedWriter writer = Files.newBufferedWriter(Paths.get(outputDir + "errores.txt"))) {
+        try (BufferedWriter writer = Files.newBufferedWriter(outputDir.resolve("errores.txt"))) {
             if (errores.isEmpty()) {
                 writer.write("Sin errores léxicos detectados.\n");
             } else {
