@@ -1,0 +1,5 @@
+[ERROR - Línea 2]: Falta ';' tras condición de for
+[ERROR - Línea 2]: Falta ')' tras incremento de for
+[ERROR - Línea 2]: Se esperaba '{' tras cabecera de for
+[ERROR - Línea 2]: Falta ';'
+[ERROR - Línea 2]: Se esperaba '}' al cerrar el for
