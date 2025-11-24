@@ -33,6 +33,20 @@ public class ASTNode {
         return sb.toString();
     }
 
+    /** Árbol en texto indentado para lectura rápida. */
+    public String toIndentedString() {
+        StringBuilder sb = new StringBuilder();
+        toIndented(sb, 0);
+        return sb.toString();
+    }
+
+    private void toIndented(StringBuilder sb, int level) {
+        sb.append("  ".repeat(level)).append(label).append("\n");
+        for (ASTNode child : children) {
+            child.toIndented(sb, level + 1);
+        }
+    }
+
     private int toDot(StringBuilder sb, int[] id) {
         int myId = id[0]++;
         sb.append("n").append(myId).append(" [label=\"").append(label).append("\"];\n");

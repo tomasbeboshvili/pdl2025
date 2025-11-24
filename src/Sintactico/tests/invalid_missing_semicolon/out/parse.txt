@@ -1,0 +1,7 @@
+P
+  P
+    B
+      let
+      int
+      id(a)
+    P

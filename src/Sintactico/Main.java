@@ -53,6 +53,22 @@ public class Main {
             System.err.println("No se pudo escribir el AST: " + e.getMessage());
         }
 
+        // Guardar parse en texto indentado
+        Path parsePath = outDir.resolve("parse.txt");
+        try {
+            Files.writeString(parsePath, ast.toIndentedString());
+        } catch (IOException e) {
+            System.err.println("No se pudo escribir el parse: " + e.getMessage());
+        }
+
+        // Guardar secuencia de reglas aplicadas (para VAST)
+        Path reglasPath = outDir.resolve("parse_reglas.txt");
+        try {
+            Files.writeString(reglasPath, parser.getReglasAplicadasLinea());
+        } catch (IOException e) {
+            System.err.println("No se pudo escribir el parse de reglas: " + e.getMessage());
+        }
+
         // Guardar errores (si los hay)
         Path errPath = outDir.resolve("errores_sintacticos.txt");
         String errores = parser.getErrores();
@@ -69,5 +85,7 @@ public class Main {
         }
 
         System.out.println("AST generado en: " + dotPath);
+        System.out.println("Parse generado en: " + parsePath);
+        System.out.println("Reglas aplicadas en: " + reglasPath);
     }
 }

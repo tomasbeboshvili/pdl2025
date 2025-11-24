@@ -1,0 +1,4 @@
+[ERROR - Línea 1]: Falta ')' en la cabecera
+[ERROR - Línea 1]: Falta '{' antes del cuerpo
+[ERROR - Línea 1]: Se esperaba '=' o '/='
+[ERROR - Línea 1]: Expresión no válida

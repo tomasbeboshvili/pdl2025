@@ -1,0 +1,2 @@
+let boolean ok;
+if (true) write ok;

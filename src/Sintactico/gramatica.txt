@@ -1,0 +1,91 @@
+//// Gramática en formato tipo 2 para VASt
+
+Terminales = { function let if for return write read int float boolean string void true false id ent real cad lambda = /= == && + ++ ( ) { , } ; }
+
+NoTerminales = { P B F F5 H T Z K E E1 R R1 U U1 V L Q S S1 W X F1 A C }
+
+Axioma = P
+
+Producciones = {
+P  -> B P
+P  -> F P
+P  -> lambda
+
+B  -> let T id ;
+B  -> if ( E ) S
+B  -> for ( F1 ; E ; A ) { C }
+B  -> S
+
+F  -> function H id ( Z ) { C F5 }
+
+F5 -> S1
+F5 -> lambda
+
+H  -> T
+
+T  -> int
+T  -> float
+T  -> boolean
+T  -> string
+T  -> void
+
+Z  -> T id K
+Z  -> lambda
+
+K  -> , T id K
+K  -> lambda
+
+E  -> R E1
+
+E1 -> && R E1
+E1 -> lambda
+
+R  -> U R1
+
+R1 -> == U R1
+R1 -> lambda
+
+U  -> V U1
+
+U1 -> + V U1
+U1 -> lambda
+
+V  -> id
+V  -> id ( L )
+V  -> ( E )
+V  -> ent
+V  -> real
+V  -> cad
+V  -> true
+V  -> false
+
+L  -> E Q
+L  -> lambda
+
+Q  -> , E Q
+Q  -> lambda
+
+S  -> id W E ;
+S  -> id ( L ) ;
+S  -> write E ;
+S  -> read id ;
+S  -> S1 ;
+
+S1 -> return X
+
+W  -> =
+W  -> /=
+
+X  -> E
+X  -> lambda
+
+F1 -> id W E
+F1 -> lambda
+
+A  -> F1
+A  -> id ++
+A  -> lambda
+
+C  -> B C
+C  -> lambda
+}

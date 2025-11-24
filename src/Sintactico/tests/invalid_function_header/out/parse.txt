@@ -1,0 +1,25 @@
+P
+  P
+    F
+      function
+      int
+      id(bad)
+      Z
+        int
+        id(a)
+        K
+      C
+        B
+          S
+            id(a)
+            W
+            E
+              R
+                U
+                  V
+                  U1
+                R1
+              E1
+        C
+      F5
+    P
