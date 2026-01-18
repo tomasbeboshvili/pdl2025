@@ -3,57 +3,75 @@ package Sintactico;
 
 import java.util.ArrayList;
 import java.util.List;
+import Semantico.SymbolTable.Type;
 
 public class ASTNode {
-    private final String label;
-    private final List<ASTNode> children = new ArrayList<>();
+	private final String label;
+	private final List<ASTNode> children = new ArrayList<>();
+	private Type semanticType;
+	private List<Type> listaTipos;
 
-    public ASTNode(String label) {
-        this.label = label;
-    }
+	public ASTNode(String label) {
+		this.label = label;
+	}
 
-    public void addChild(ASTNode child) {
-        children.add(child);
-    }
+	public void addChild(ASTNode child) {
+		children.add(child);
+	}
 
-    public String getLabel() {
-        return label;
-    }
+	public String getLabel() {
+		return label;
+	}
 
 	public List<ASTNode> getChildren() {
 		return children;
 	}
 
-	
-    public String toDotFile() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("digraph AST {\n");
-        toDot(sb, new int[]{0});
-        sb.append("}");
-        return sb.toString();
-    }
+	public Type getSemanticType() {
+		return semanticType;
+	}
 
-    /** Árbol en texto indentado para lectura rápida. */
-    public String toIndentedString() {
-        StringBuilder sb = new StringBuilder();
-        toIndented(sb, 0);
-        return sb.toString();
-    }
+	public void setSemanticType(Type semanticType) {
+		this.semanticType = semanticType;
+	}
 
-    private void toIndented(StringBuilder sb, int level) {
-        sb.append("  ".repeat(level)).append(label).append("\n");
-        for (ASTNode child : children) {
-            child.toIndented(sb, level + 1);
-        }
-    }
+	public List<Type> getListaTipos() {
+		return listaTipos;
+	}
 
-    private int toDot(StringBuilder sb, int[] id) {
-        int myId = id[0]++;
-        sb.append("n").append(myId).append(" [label=\"").append(label).append("\"];\n");
-        for (ASTNode child : children) {
-            int childId = child.toDot(sb, id);
-            sb.append("n").append(myId).append(" -> n").append(childId).append(";\n");
-        }
-        return myId;
-    }
+	public void setListaTipos(List<Type> listaTipos) {
+		this.listaTipos = listaTipos;
+	}
+
+	public String toDotFile() {
+		StringBuilder sb = new StringBuilder();
+		sb.append("digraph AST {\n");
+		toDot(sb, new int[] { 0 });
+		sb.append("}");
+		return sb.toString();
+	}
+
+	/** Árbol en texto indentado para lectura rápida. */
+	public String toIndentedString() {
+		StringBuilder sb = new StringBuilder();
+		toIndented(sb, 0);
+		return sb.toString();
+	}
+
+	private void toIndented(StringBuilder sb, int level) {
+		sb.append("  ".repeat(level)).append(label).append("\n");
+		for (ASTNode child : children) {
+			child.toIndented(sb, level + 1);
+		}
+	}
+
+	private int toDot(StringBuilder sb, int[] id) {
+		int myId = id[0]++;
+		sb.append("n").append(myId).append(" [label=\"").append(label).append("\"];\n");
+		for (ASTNode child : children) {
+			int childId = child.toDot(sb, id);
+			sb.append("n").append(myId).append(" -> n").append(childId).append(";\n");
+		}
+		return myId;
+	}
 }

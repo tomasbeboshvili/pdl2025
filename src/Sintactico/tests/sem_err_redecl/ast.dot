@@ -1,0 +1,25 @@
+digraph AST {
+n0 [label="P1"];
+n1 [label="P"];
+n2 [label="B"];
+n3 [label="PRlet"];
+n2 -> n3;
+n4 [label="PRint"];
+n2 -> n4;
+n5 [label="id(a)"];
+n2 -> n5;
+n1 -> n2;
+n6 [label="P"];
+n7 [label="B"];
+n8 [label="PRlet"];
+n7 -> n8;
+n9 [label="PRfloat"];
+n7 -> n9;
+n10 [label="id(a)"];
+n7 -> n10;
+n6 -> n7;
+n11 [label="P"];
+n6 -> n11;
+n1 -> n6;
+n0 -> n1;
+}

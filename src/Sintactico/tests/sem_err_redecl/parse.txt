@@ -1,0 +1,12 @@
+P1
+  P
+    B
+      PRlet
+      PRint
+      id(a)
+    P
+      B
+        PRlet
+        PRfloat
+        id(a)
+      P

@@ -1,0 +1,1 @@
+[ERROR - Línea 2]: Variable 'a' ya declarada

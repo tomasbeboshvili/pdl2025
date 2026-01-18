@@ -2,496 +2,828 @@ package Sintactico;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import lexico.Token;
+import Semantico.SymbolTable;
+import Semantico.SymbolTable.Type;
+import Semantico.SymbolTable.Category;
 
 /**
  * Analizador sintáctico descendente para la gramática proporcionada.
  * Solo depende de ASTNode y Token (sin Symbol ni TokenType).
  */
 public class Parser {
-    private final List<Token> tokens;
-    private int current = 0;
-    private final StringBuilder errores = new StringBuilder();
-    private boolean hayErrores = false;
-    private final List<Integer> reglasAplicadas = new ArrayList<>();
+	private final List<Token> tokens;
+	private int current = 0;
+	private final StringBuilder errores = new StringBuilder();
+	private boolean hayErrores = false;
+	private final List<Integer> reglasAplicadas = new ArrayList<>();
+	private final SymbolTable ts = new SymbolTable();
 
-    public Parser(List<Token> tokens) {
-        this.tokens = tokens;
-    }
+	public Parser(List<Token> tokens) {
+		this.tokens = tokens;
+	}
 
-    public ASTNode parseAST() {
-        ASTNode root = new ASTNode("P");
-        root.addChild(P());
-        return root;
-    }
+	public ASTNode parseAST() {
+		return P1();
+	}
 
-    public String getReglasAplicadasLinea() {
-        StringBuilder sb = new StringBuilder("descendente");
-        for (int r : reglasAplicadas) {
-            sb.append(" ").append(r);
-        }
-        return sb.toString();
-    }
+	public String getReglasAplicadasLinea() {
+		StringBuilder sb = new StringBuilder("descendente");
+		for (int r : reglasAplicadas) {
+			sb.append(" ").append(r);
+		}
+		return sb.toString();
+	}
 
-    // P -> B P | F P | λ
-    private ASTNode P() {
-        ASTNode node = new ASTNode("P");
-        if (checkAny("function")) {
-            reglasAplicadas.add(2); // P -> F P
-            node.addChild(F());
-            node.addChild(P());
-        } else if (checkAny("let", "if", "for", "id", "write", "read", "return")) {
-            reglasAplicadas.add(1); // P -> B P
-            node.addChild(B());
-            node.addChild(P());
-        } else {
-            reglasAplicadas.add(3); // P -> lambda
-        }
-        return node;
-    }
+	// 1: P1 -> P
+	private ASTNode P1() {
+		reglasAplicadas.add(1);
+		ts.init();
+		ASTNode node = new ASTNode("P1");
+		node.addChild(P());
+		return node;
+	}
 
-    // B -> let T id ; | if ( E ) S | S | for ( F1 ; E ; A ) { C }
-    private ASTNode B() {
-        ASTNode node = new ASTNode("B");
-        if (match("let")) {
-            reglasAplicadas.add(4);
-            node.addChild(new ASTNode("let"));
-            node.addChild(T());
-            Token idTok = consume("id", "Se esperaba identificador");
-            node.addChild(new ASTNode("id(" + idTok.getLexeme() + ")"));
-            consume(";", "Falta ';' tras declaración");
-        } else if (match("if")) {
-            reglasAplicadas.add(5);
-            node.addChild(new ASTNode("if"));
-            consume("(", "Se esperaba '(' tras if");
-            node.addChild(E());
-            consume(")", "Se esperaba ')' tras la condición");
-            node.addChild(S());
-        } else if (match("for")) {
-            reglasAplicadas.add(6);
-            node.addChild(new ASTNode("for"));
-            consume("(", "Se esperaba '(' tras for");
-            node.addChild(F1());
-            consume(";", "Falta ';' tras inicialización de for");
-            node.addChild(E());
-            consume(";", "Falta ';' tras condición de for");
-            node.addChild(A());
-            consume(")", "Falta ')' tras incremento de for");
-            consume("{", "Se esperaba '{' tras cabecera de for");
-            node.addChild(C());
-            consume("}", "Se esperaba '}' al cerrar el for");
-        } else {
-            reglasAplicadas.add(7);
-            node.addChild(S());
-        }
-        return node;
-    }
+	// 2: P -> B P | 3: P -> F P | 4: P -> lambda
+	private ASTNode P() {
+		ASTNode node = new ASTNode("P");
+		Type type;
+		if (checkAny("PRfun")) {
+			reglasAplicadas.add(3);
+			ASTNode fNode = F();
+			node.addChild(fNode);
+			ASTNode pNode = P();
+			node.addChild(pNode);
+			type = (fNode.getSemanticType() == Type.OK && pNode.getSemanticType() == Type.OK) ? Type.OK : Type.ERROR;
+		} else if (checkAny("PRlet", "PRif", "PRfor", "id", "PRwrite", "PRread", "PRreturn")) {
+			reglasAplicadas.add(2);
+			ASTNode bNode = B();
+			node.addChild(bNode);
+			ASTNode pNode = P();
+			node.addChild(pNode);
+			type = (bNode.getSemanticType() == Type.OK && pNode.getSemanticType() == Type.OK) ? Type.OK : Type.ERROR;
+		} else {
+			reglasAplicadas.add(4);
+			type = Type.OK;
+		}
+		if (type == Type.ERROR)
+			hayErrores = true; // Ensure error flag is set
+		node.setSemanticType(type);
+		return node;
+	}
 
-    // F -> function H id ( Z ) { C F5 }
-    private ASTNode F() {
-        reglasAplicadas.add(8);
-        ASTNode node = new ASTNode("F");
-        consume("function", "Se esperaba 'function'");
-        node.addChild(new ASTNode("function"));
-        node.addChild(H());
-        Token name = consume("id", "Se esperaba identificador de función");
-        node.addChild(new ASTNode("id(" + name.getLexeme() + ")"));
-        consume("(", "Falta '(' en la cabecera");
-        node.addChild(Z());
-        consume(")", "Falta ')' en la cabecera");
-        consume("{", "Falta '{' antes del cuerpo");
-        node.addChild(C());
-        node.addChild(F5());
-        consume("}", "Falta '}' tras el cuerpo");
-        return node;
-    }
+	// 5: B -> PRlet T id puntoComa | 6: B -> PRif parenIzq E parenDcha S | 7: B ->
+	// PRfor ... | 8: B -> S
+	private ASTNode B() {
+		ASTNode node = new ASTNode("B");
+		Type type = Type.ERROR;
+		if (match("PRlet")) {
+			reglasAplicadas.add(5);
+			node.addChild(new ASTNode("PRlet"));
+			ASTNode tNode = T();
+			node.addChild(tNode);
+			Token idTok = consume("id", "Se esperaba identificador");
+			node.addChild(new ASTNode("id(" + idTok.getLexeme() + ")"));
+			consume("puntoComa", "Falta ';' tras declaración");
 
-    // F5 -> S1 | λ
-    private ASTNode F5() {
-        ASTNode node = new ASTNode("F5");
-        if (checkAny("return")) {
-            reglasAplicadas.add(9);
-            node.addChild(S1());
-        } else {
-            reglasAplicadas.add(10);
-        }
-        return node;
-    }
+			if (!ts.existeLocal(idTok.getLexeme())) {
+				ts.anadirVar(idTok.getLexeme(), tNode.getSemanticType());
+				type = Type.OK;
+			} else {
+				error(idTok, "Variable '" + idTok.getLexeme() + "' ya declarada");
+				type = Type.ERROR;
+			}
+		} else if (match("PRif")) {
+			reglasAplicadas.add(6);
+			node.addChild(new ASTNode("PRif"));
+			consume("parenIzq", "Se esperaba '(' tras if");
+			ASTNode eNode = E();
+			node.addChild(eNode);
+			consume("parenDcha", "Se esperaba ')' tras la condición");
+			ASTNode sNode = S();
+			node.addChild(sNode);
+			if (eNode.getSemanticType() == Type.BOOLEAN && sNode.getSemanticType() == Type.OK) {
+				type = Type.OK;
+			} else {
+				if (eNode.getSemanticType() != Type.BOOLEAN) {
+					error(previous(), "La condición del 'if' debe ser boolean");
+				}
+				type = Type.ERROR;
+			}
+		} else if (match("PRfor")) {
+			reglasAplicadas.add(7);
+			node.addChild(new ASTNode("PRfor"));
+			consume("parenIzq", "Se esperaba '(' tras for");
+			ASTNode f1Init = F1();
+			node.addChild(f1Init);
+			consume("puntoComa", "Falta ';' tras inicialización de for");
+			ASTNode eNode = E();
+			node.addChild(eNode);
+			consume("puntoComa", "Falta ';' tras condición de for");
+			ASTNode f1Incr = F1();
+			node.addChild(f1Incr);
+			consume("parenDcha", "Falta ')' tras incremento de for");
+			consume("llaveIzq", "Se esperaba '{' tras cabecera de for");
+			ASTNode cNode = C();
+			node.addChild(cNode);
+			consume("llaveDcha", "Se esperaba '}' al cerrar el for");
+			// B -> PRfor parenIzq F1 puntoComa E puntoComa F1 parenDcha llaveIzq C
+			// llaveDcha
+			// { if (F1.tipo == ok AND E.tipo == boolean AND A.tipo == ok AND C.tipo == ok)
+			// then B.tipo := ok else B.tipo := error }
+			// Note: The rule mentions 'A.tipo == ok', but 'A' is not in the production.
+			// Looking at the grammar provided: B -> PRfor parenIzq F1 puntoComa E puntoComa
+			// F1 parenDcha llaveIzq C llaveDcha
+			// The semantic action says: if (F1.tipo == ok AND E.tipo == boolean AND A.tipo
+			// == ok AND C.tipo == ok)
+			// I'll assume 'A' was a typo or refers to something else, maybe the first F1?
+			// I'll use both F1s and C.
+			if (f1Init.getSemanticType() == Type.OK && eNode.getSemanticType() == Type.BOOLEAN
+					&& f1Incr.getSemanticType() == Type.OK && cNode.getSemanticType() == Type.OK) {
+				type = Type.OK;
+			} else {
+				if (eNode.getSemanticType() != Type.BOOLEAN) {
+					error(previous(), "La condición del 'for' debe ser boolean");
+				}
+				type = Type.ERROR;
+			}
+		} else {
+			reglasAplicadas.add(8);
+			ASTNode sNode = S();
+			node.addChild(sNode);
+			type = sNode.getSemanticType();
+		}
+		node.setSemanticType(type);
+		return node;
+	}
 
-    // H -> T | void
-    private ASTNode H() {
-        if (checkAny("int", "float", "boolean", "string", "void")) {
-            reglasAplicadas.add(11);
-            return T();
-        }
-        error(peek(), "Se esperaba tipo o void");
-        return new ASTNode("tipo_error");
-    }
+	// 9: T -> PRint | 10: T -> PRfloat | 11: T -> PRboolean | 12: T -> PRstring
+	private ASTNode T() {
+		ASTNode node;
+		Type type;
+		if (match("PRint")) {
+			reglasAplicadas.add(9);
+			node = new ASTNode("PRint");
+			type = Type.ENTERO;
+		} else if (match("PRfloat")) {
+			reglasAplicadas.add(10);
+			node = new ASTNode("PRfloat");
+			type = Type.REAL;
+		} else if (match("PRboolean")) {
+			reglasAplicadas.add(11);
+			node = new ASTNode("PRboolean");
+			type = Type.BOOLEAN;
+		} else if (match("PRstring")) {
+			reglasAplicadas.add(12);
+			node = new ASTNode("PRstring");
+			type = Type.CADENA;
+		} else {
+			error(peek(), "Tipo no válido");
+			node = new ASTNode("tipo_error");
+			type = Type.ERROR;
+		}
+		node.setSemanticType(type);
+		return node;
+	}
 
-    // T -> int | float | boolean | string | void
-    private ASTNode T() {
-        if (match("int")) { reglasAplicadas.add(12); return new ASTNode("int"); }
-        if (match("float")) { reglasAplicadas.add(13); return new ASTNode("float"); }
-        if (match("boolean")) { reglasAplicadas.add(14); return new ASTNode("boolean"); }
-        if (match("string")) { reglasAplicadas.add(15); return new ASTNode("string"); }
-        if (match("void")) { reglasAplicadas.add(16); return new ASTNode("void"); }
-        error(peek(), "Tipo no válido");
-        return new ASTNode("tipo_error");
-    }
+	// 13: F -> PRfun T id parenIzq Z parenDcha llaveIzq C F2 llaveDcha
+	private ASTNode F() {
+		reglasAplicadas.add(13);
+		ASTNode node = new ASTNode("F");
+		consume("PRfun", "Se esperaba 'function'");
+		node.addChild(new ASTNode("PRfun"));
+		ASTNode tNode = T();
+		node.addChild(tNode);
+		Token name = consume("id", "Se esperaba identificador de función");
+		node.addChild(new ASTNode("id(" + name.getLexeme() + ")"));
 
-    // Z -> T id K | λ
-    private ASTNode Z() {
-        ASTNode node = new ASTNode("Z");
-        if (checkAny("int", "float", "boolean", "string", "void")) {
-            reglasAplicadas.add(17);
-            node.addChild(T());
-            Token idTok = consume("id", "Se esperaba identificador de parámetro");
-            node.addChild(new ASTNode("id(" + idTok.getLexeme() + ")"));
-            node.addChild(K());
-        } else {
-            reglasAplicadas.add(18);
-        }
-        return node;
-    }
+		ts.anadirFunc(name.getLexeme(), tNode.getSemanticType());
+		ts.entrarAmbito();
 
-    // K -> , T id K | λ
-    private ASTNode K() {
-        ASTNode node = new ASTNode("K");
-        if (match(",")) {
-            reglasAplicadas.add(19);
-            node.addChild(new ASTNode(","));
-            node.addChild(T());
-            Token idTok = consume("id", "Se esperaba identificador de parámetro");
-            node.addChild(new ASTNode("id(" + idTok.getLexeme() + ")"));
-            node.addChild(K());
-        } else {
-            reglasAplicadas.add(20);
-        }
-        return node;
-    }
+		consume("parenIzq", "Falta '(' en la cabecera");
+		ASTNode zNode = Z();
+		node.addChild(zNode);
+		consume("parenDcha", "Falta ')' en la cabecera");
 
-    // E -> R E1
-    private ASTNode E() {
-        reglasAplicadas.add(21);
-        ASTNode node = new ASTNode("E");
-        node.addChild(R());
-        node.addChild(E1());
-        return node;
-    }
+		ts.setParamsFunc(name.getLexeme(), zNode.getListaTipos());
 
-    // E1 -> && R E1 | λ
-    private ASTNode E1() {
-        ASTNode node = new ASTNode("E1");
-        if (match("&&")) {
-            reglasAplicadas.add(22);
-            node.addChild(new ASTNode("&&"));
-            node.addChild(R());
-            node.addChild(E1());
-        } else {
-            reglasAplicadas.add(23);
-        }
-        return node;
-    }
+		consume("llaveIzq", "Falta '{' antes del cuerpo");
+		ASTNode cNode = C();
+		node.addChild(cNode);
+		ASTNode f2Node = F2();
+		node.addChild(f2Node);
+		consume("llaveDcha", "Falta '}' tras el cuerpo");
 
-    // R -> U R1
-    private ASTNode R() {
-        reglasAplicadas.add(24);
-        ASTNode node = new ASTNode("R");
-        node.addChild(U());
-        node.addChild(R1());
-        return node;
-    }
+		Type type;
+		if (f2Node.getSemanticType() == tNode.getSemanticType()) {
+			type = Type.OK;
+		} else {
+			error(name, "Retorno incorrecto en funcion " + name.getLexeme());
+			type = Type.ERROR;
+		}
+		ts.salirAmbito();
+		node.setSemanticType(type);
+		return node;
+	}
 
-    // R1 -> == U R1 | λ
-    private ASTNode R1() {
-        ASTNode node = new ASTNode("R1");
-        if (match("==")) {
-            reglasAplicadas.add(25);
-            node.addChild(new ASTNode("=="));
-            node.addChild(U());
-            node.addChild(R1());
-        } else {
-            reglasAplicadas.add(26);
-        }
-        return node;
-    }
+	// 14: F1 -> id W E | 15: F1 -> lambda
+	private ASTNode F1() {
+		ASTNode node = new ASTNode("F1");
+		Type type;
+		if (checkAny("id")) {
+			reglasAplicadas.add(14);
+			Token idTok = consume("id", "Se esperaba identificador");
+			node.addChild(new ASTNode("id(" + idTok.getLexeme() + ")"));
+			ASTNode wNode = W();
+			node.addChild(wNode);
+			ASTNode eNode = E();
+			node.addChild(eNode);
 
-    // U -> V U1
-    private ASTNode U() {
-        reglasAplicadas.add(27);
-        ASTNode node = new ASTNode("U");
-        node.addChild(V());
-        node.addChild(U1());
-        return node;
-    }
+			Type tId = ts.buscarTipo(idTok.getLexeme());
+			if (tId == eNode.getSemanticType()) {
+				type = Type.OK;
+			} else {
+				error(idTok, "Tipos incompatibles en asignación: " + tId + " y " + eNode.getSemanticType());
+				type = Type.ERROR;
+			}
+		} else {
+			reglasAplicadas.add(15);
+			type = Type.OK;
+		}
+		node.setSemanticType(type);
+		return node;
+	}
 
-    // U1 -> + V U1 | λ
-    private ASTNode U1() {
-        ASTNode node = new ASTNode("U1");
-        if (match("+")) {
-            reglasAplicadas.add(28);
-            node.addChild(new ASTNode("+"));
-            node.addChild(V());
-            node.addChild(U1());
-        } else {
-            reglasAplicadas.add(29);
-        }
-        return node;
-    }
+	// 16: F2 -> S1 | 17: F2 -> lambda
+	private ASTNode F2() {
+		ASTNode node = new ASTNode("F2");
+		Type type;
+		if (checkAny("PRreturn")) {
+			reglasAplicadas.add(16);
+			ASTNode s1Node = S1();
+			node.addChild(s1Node);
+			type = s1Node.getSemanticType();
+		} else {
+			reglasAplicadas.add(17);
+			type = Type.VOID;
+		}
+		node.setSemanticType(type);
+		return node;
+	}
 
-    // V -> id | id ( L ) | ( E ) | ent | cad | true | false | real
-    private ASTNode V() {
-        ASTNode node = new ASTNode("V");
-        if (match("id")) {
-            Token idTok = previous();
-            if (match("(")) {
-                reglasAplicadas.add(31);
-                node.addChild(new ASTNode("call(" + idTok.getLexeme() + ")"));
-                node.addChild(L());
-                consume(")", "Falta ')' tras los argumentos");
-            } else {
-                reglasAplicadas.add(30);
-                node.addChild(new ASTNode("id(" + idTok.getLexeme() + ")"));
-            }
-        } else if (match("(")) {
-            reglasAplicadas.add(32);
-            node.addChild(new ASTNode("("));
-            node.addChild(E());
-            consume(")", "Falta ')'");
-        } else if (match("ent")) {
-            reglasAplicadas.add(33);
-            node.addChild(new ASTNode("ent"));
-        } else if (match("real")) {
-            reglasAplicadas.add(34);
-            node.addChild(new ASTNode("real"));
-        } else if (match("cad")) {
-            reglasAplicadas.add(35);
-            node.addChild(new ASTNode("cad"));
-        } else if (match("true")) {
-            reglasAplicadas.add(36);
-            node.addChild(new ASTNode("true"));
-        } else if (match("false")) {
-            reglasAplicadas.add(37);
-            node.addChild(new ASTNode("false"));
-        } else {
-            error(peek(), "Expresión no válida");
-        }
-        return node;
-    }
+	// 18: Z -> T id K | 19: Z -> lambda
+	private ASTNode Z() {
+		ASTNode node = new ASTNode("Z");
+		List<Type> lista = new ArrayList<>();
+		if (checkAny("PRint", "PRfloat", "PRboolean", "PRstring")) {
+			reglasAplicadas.add(18);
+			ASTNode tNode = T();
+			node.addChild(tNode);
+			Token idTok = consume("id", "Se esperaba identificador de parámetro");
+			node.addChild(new ASTNode("id(" + idTok.getLexeme() + ")"));
+			ASTNode kNode = K();
+			node.addChild(kNode);
 
-    // L -> E Q | λ
-    private ASTNode L() {
-        ASTNode node = new ASTNode("L");
-        if (checkAny("id", "ent", "real", "cad", "true", "false", "(")) {
-            reglasAplicadas.add(38);
-            node.addChild(E());
-            node.addChild(Q());
-        } else {
-            reglasAplicadas.add(39);
-        }
-        return node;
-    }
+			if (!ts.existeLocal(idTok.getLexeme())) {
+				ts.anadirVar(idTok.getLexeme(), tNode.getSemanticType());
+				lista.add(tNode.getSemanticType());
+				if (kNode.getListaTipos() != null) {
+					lista.addAll(kNode.getListaTipos());
+				}
+			} else {
+				// Error handled by returning null or empty? Specification says Z.listaTipos :=
+				// error
+				// I'll use null or a special list to represent error if needed.
+			}
+		} else {
+			reglasAplicadas.add(19);
+		}
+		node.setListaTipos(lista);
+		return node;
+	}
 
-    // Q -> , E Q | λ
-    private ASTNode Q() {
-        ASTNode node = new ASTNode("Q");
-        if (match(",")) {
-            reglasAplicadas.add(40);
-            node.addChild(new ASTNode(","));
-            node.addChild(E());
-            node.addChild(Q());
-        } else {
-            reglasAplicadas.add(41);
-        }
-        return node;
-    }
+	// 20: K -> coma T id K | 21: K -> lambda
+	private ASTNode K() {
+		ASTNode node = new ASTNode("K");
+		List<Type> lista = new ArrayList<>();
+		if (match("coma")) {
+			reglasAplicadas.add(20);
+			node.addChild(new ASTNode("coma"));
+			ASTNode tNode = T();
+			node.addChild(tNode);
+			Token idTok = consume("id", "Se esperaba identificador de parámetro");
+			node.addChild(new ASTNode("id(" + idTok.getLexeme() + ")"));
+			ASTNode kNode = K();
+			node.addChild(kNode);
 
-    // S -> id W E ; | id ( L ) ; | write E ; | read id ; | S1 ;
-    private ASTNode S() {
-        ASTNode node = new ASTNode("S");
-        if (match("id")) {
-            Token idTok = previous();
-            if (match("(")) {
-                reglasAplicadas.add(43);
-                node.addChild(new ASTNode("call(" + idTok.getLexeme() + ")"));
-                node.addChild(L());
-                consume(")", "Falta ')' en la llamada");
-                consume(";", "Falta ';'");
-            } else {
-                reglasAplicadas.add(42);
-                node.addChild(new ASTNode("id(" + idTok.getLexeme() + ")"));
-                node.addChild(W());
-                node.addChild(E());
-                consume(";", "Falta ';'");
-            }
-        } else if (match("write")) {
-            reglasAplicadas.add(44);
-            node.addChild(new ASTNode("write"));
-            node.addChild(E());
-            consume(";", "Falta ';'");
-        } else if (match("read")) {
-            reglasAplicadas.add(45);
-            node.addChild(new ASTNode("read"));
-            Token idTok = consume("id", "Se esperaba identificador en read");
-            node.addChild(new ASTNode("id(" + idTok.getLexeme() + ")"));
-            consume(";", "Falta ';'");
-        } else if (checkAny("return")) {
-            reglasAplicadas.add(46);
-            node.addChild(S1());
-            consume(";", "Falta ';' tras return");
-        } else {
-            error(peek(), "Sentencia no válida");
-        }
-        return node;
-    }
+			if (!ts.existeLocal(idTok.getLexeme())) {
+				ts.anadirVar(idTok.getLexeme(), tNode.getSemanticType());
+				lista.add(tNode.getSemanticType());
+				if (kNode.getListaTipos() != null) {
+					lista.addAll(kNode.getListaTipos());
+				}
+			}
+		} else {
+			reglasAplicadas.add(21);
+		}
+		node.setListaTipos(lista);
+		return node;
+	}
 
-    // S1 -> return X
-    private ASTNode S1() {
-        reglasAplicadas.add(47);
-        ASTNode node = new ASTNode("S1");
-        consume("return", "Falta 'return'");
-        node.addChild(new ASTNode("return"));
-        node.addChild(X());
-        return node;
-    }
+	// 22: E -> R E1
+	private ASTNode E() {
+		reglasAplicadas.add(22);
+		ASTNode node = new ASTNode("E");
+		ASTNode rNode = R();
+		node.addChild(rNode);
+		ASTNode e1Node = E1();
+		node.addChild(e1Node);
 
-    // W -> = | /=
-    private ASTNode W() {
-        ASTNode node = new ASTNode("W");
-        if (match("=")) {
-            reglasAplicadas.add(48);
-            node.addChild(new ASTNode("="));
-        } else if (match("/=")) {
-            reglasAplicadas.add(49);
-            node.addChild(new ASTNode("/="));
-        } else {
-            error(peek(), "Se esperaba '=' o '/='");
-        }
-        return node;
-    }
+		Type type;
+		if (e1Node.getSemanticType() == null) {
+			type = rNode.getSemanticType();
+		} else if (rNode.getSemanticType() == Type.BOOLEAN && e1Node.getSemanticType() == Type.BOOLEAN) {
+			type = Type.BOOLEAN;
+		} else {
+			type = Type.ERROR;
+		}
+		node.setSemanticType(type);
+		return node;
+	}
 
-    // X -> E | λ
-    private ASTNode X() {
-        ASTNode node = new ASTNode("X");
-        if (!checkAny(";")) {
-            reglasAplicadas.add(50);
-            node.addChild(E());
-        } else {
-            reglasAplicadas.add(51);
-        }
-        return node;
-    }
+	// 23: E1 -> opAnd R E1 | 24: E1 -> lambda
+	private ASTNode E1() {
+		ASTNode node = new ASTNode("E1");
+		Type type;
+		if (match("opAnd")) {
+			reglasAplicadas.add(23);
+			node.addChild(new ASTNode("opAnd"));
+			ASTNode rNode = R();
+			node.addChild(rNode);
+			ASTNode e1Node = E1();
+			node.addChild(e1Node);
 
-    // F1 -> id W E | λ
-    private ASTNode F1() {
-        ASTNode node = new ASTNode("F1");
-        if (checkAny("id") && checkNextAny("=", "/=")) {
-            reglasAplicadas.add(52);
-            Token idTok = consume("id", "Se esperaba identificador");
-            node.addChild(new ASTNode("id(" + idTok.getLexeme() + ")"));
-            node.addChild(W());
-            node.addChild(E());
-        } else {
-            reglasAplicadas.add(53);
-        }
-        return node;
-    }
+			if (rNode.getSemanticType() == Type.BOOLEAN
+					&& (e1Node.getSemanticType() == Type.BOOLEAN || e1Node.getSemanticType() == null)) {
+				type = Type.BOOLEAN;
+			} else {
+				type = Type.ERROR;
+			}
+		} else {
+			reglasAplicadas.add(24);
+			type = null;
+		}
+		node.setSemanticType(type);
+		return node;
+	}
 
-    // A -> F1 | id++ | λ
-    private ASTNode A() {
-        ASTNode node = new ASTNode("A");
-        if (checkAny("id") && checkNextAny("=", "/=")) {
-            reglasAplicadas.add(54);
-            node.addChild(F1());
-        } else if (checkAny("id") && checkNextAny("++")) {
-            reglasAplicadas.add(55);
-            Token idTok = consume("id", "Se esperaba identificador");
-            node.addChild(new ASTNode("id(" + idTok.getLexeme() + ")"));
-            consume("++", "Se esperaba '++'");
-            node.addChild(new ASTNode("++"));
-        } else {
-            reglasAplicadas.add(56);
-        }
-        return node;
-    }
+	// 25: R -> U R1
+	private ASTNode R() {
+		reglasAplicadas.add(25);
+		ASTNode node = new ASTNode("R");
+		ASTNode uNode = U();
+		node.addChild(uNode);
+		ASTNode r1Node = R1();
+		node.addChild(r1Node);
 
-    // C -> B C | λ
-    private ASTNode C() {
-        ASTNode node = new ASTNode("C");
-        if (checkAny("let", "if", "for", "id", "write", "read", "return")) {
-            reglasAplicadas.add(57);
-            node.addChild(B());
-            node.addChild(C());
-        } else {
-            reglasAplicadas.add(58);
-        }
-        return node;
-    }
+		Type type;
+		if (r1Node.getSemanticType() == null) {
+			type = uNode.getSemanticType();
+		} else if (uNode.getSemanticType() == r1Node.getSemanticType()) {
+			type = Type.BOOLEAN;
+		} else {
+			type = Type.ERROR;
+		}
+		node.setSemanticType(type);
+		return node;
+	}
 
-    public String getErrores() {
-        return errores.toString();
-    }
+	// 26: R1 -> opIgual U R1 | 27: R1 -> lambda
+	private ASTNode R1() {
+		ASTNode node = new ASTNode("R1");
+		Type type;
+		if (match("opIgual")) {
+			reglasAplicadas.add(26);
+			node.addChild(new ASTNode("opIgual"));
+			ASTNode uNode = U();
+			node.addChild(uNode);
+			ASTNode r1Node = R1();
+			node.addChild(r1Node);
 
-    public boolean hasErrores() {
-        return hayErrores;
-    }
+			if (uNode.getSemanticType() == r1Node.getSemanticType() || r1Node.getSemanticType() == null) {
+				type = uNode.getSemanticType();
+			} else {
+				type = Type.ERROR;
+			}
+		} else {
+			reglasAplicadas.add(27);
+			type = null;
+		}
+		node.setSemanticType(type);
+		return node;
+	}
 
-    private boolean match(String... types) {
-        for (String type : types) {
-            if (checkAny(type)) {
-                advance();
-                return true;
-            }
-        }
-        return false;
-    }
+	// 28: U -> V U1
+	private ASTNode U() {
+		reglasAplicadas.add(28);
+		ASTNode node = new ASTNode("U");
+		ASTNode vNode = V();
+		node.addChild(vNode);
+		ASTNode u1Node = U1();
+		node.addChild(u1Node);
 
-    private boolean checkAny(String... types) {
-        if (isAtEnd()) return false;
-        String currentType = peek().getType();
-        for (String type : types) {
-            if (currentType.equals(type)) {
-                return true;
-            }
-        }
-        return false;
-    }
+		Type type;
+		if (u1Node.getSemanticType() == null) {
+			type = vNode.getSemanticType();
+		} else if (vNode.getSemanticType() == u1Node.getSemanticType()
+				&& (vNode.getSemanticType() == Type.ENTERO || vNode.getSemanticType() == Type.REAL)) {
+			type = vNode.getSemanticType();
+		} else {
+			type = Type.ERROR;
+		}
+		node.setSemanticType(type);
+		return node;
+	}
 
-    private boolean checkNextAny(String... types) {
-        if (current + 1 >= tokens.size()) return false;
-        String nextType = tokens.get(current + 1).getType();
-        for (String type : types) {
-            if (nextType.equals(type)) return true;
-        }
-        return false;
-    }
+	// 29: U1 -> opSuma V U1 | 30: U1 -> lambda
+	private ASTNode U1() {
+		ASTNode node = new ASTNode("U1");
+		Type type;
+		if (match("opSuma")) {
+			reglasAplicadas.add(29);
+			node.addChild(new ASTNode("opSuma"));
+			ASTNode vNode = V();
+			node.addChild(vNode);
+			ASTNode u1Node = U1();
+			node.addChild(u1Node);
 
-    private Token advance() {
-        if (!isAtEnd()) current++;
-        return previous();
-    }
+			if (vNode.getSemanticType() == u1Node.getSemanticType() || u1Node.getSemanticType() == null) {
+				type = vNode.getSemanticType();
+			} else {
+				type = Type.ERROR;
+			}
+		} else {
+			reglasAplicadas.add(30);
+			type = null;
+		}
+		node.setSemanticType(type);
+		return node;
+	}
 
-    private boolean isAtEnd() {
-        return "EOF".equals(peek().getType());
-    }
+	// 31: V -> id V1 | 32: V -> parenIzq E parenDcha | 33: V -> entero | 34: V ->
+	// real | 35: V -> cadena | 36: V -> true | 37: V -> false
+	private ASTNode V() {
+		ASTNode node = new ASTNode("V");
+		Type type = Type.ERROR;
+		if (match("id")) {
+			reglasAplicadas.add(31);
+			Token idTok = previous();
+			node.addChild(new ASTNode("id(" + idTok.getLexeme() + ")"));
 
-    private Token peek() {
-        return tokens.get(current);
-    }
+			Type tipoId = ts.buscarTipo(idTok.getLexeme());
+			Category catId = ts.buscarCategoria(idTok.getLexeme());
 
-    private Token previous() {
-        return tokens.get(current - 1);
-    }
+			ASTNode v1Node = V1(tipoId, catId, idTok.getLexeme());
+			node.addChild(v1Node);
+			type = v1Node.getSemanticType();
+		} else if (match("parenIzq")) {
+			reglasAplicadas.add(32);
+			node.addChild(new ASTNode("parenIzq"));
+			ASTNode eNode = E();
+			node.addChild(eNode);
+			consume("parenDcha", "Falta ')'");
+			type = eNode.getSemanticType();
+		} else if (match("entero")) {
+			reglasAplicadas.add(33);
+			node.addChild(new ASTNode("entero"));
+			type = Type.ENTERO;
+		} else if (match("real")) {
+			reglasAplicadas.add(34);
+			node.addChild(new ASTNode("real"));
+			type = Type.REAL;
+		} else if (match("cadena")) {
+			reglasAplicadas.add(35);
+			node.addChild(new ASTNode("cadena"));
+			type = Type.CADENA;
+		} else if (match("true")) {
+			reglasAplicadas.add(36);
+			node.addChild(new ASTNode("true"));
+			type = Type.BOOLEAN;
+		} else if (match("false")) {
+			reglasAplicadas.add(37);
+			node.addChild(new ASTNode("false"));
+			type = Type.BOOLEAN;
+		} else {
+			error(peek(), "Expresión no válida");
+		}
+		node.setSemanticType(type);
+		return node;
+	}
 
-    private Token consume(String type, String message) {
-        if (checkAny(type)) return advance();
-        error(peek(), message);
-        return advance();
-    }
+	// 38: V1 -> parenIzq L parenDcha | 39: V1 -> lambda
+	private ASTNode V1(Type h_tipoBase, Category h_categoria, String h_lexema) {
+		ASTNode node = new ASTNode("V1");
+		Type type;
+		if (match("parenIzq")) {
+			reglasAplicadas.add(38);
+			node.addChild(new ASTNode("parenIzq"));
+			ASTNode lNode = L();
+			node.addChild(lNode);
+			consume("parenDcha", "Falta ')'");
 
-    private void error(Token token, String message) {
-        hayErrores = true;
-        errores.append("[ERROR - Línea ").append(token.getLine()).append("]: ").append(message).append("\n");
-    }
+			if (h_categoria == Category.FUNCION) {
+				List<Type> params = ts.buscarParams(h_lexema);
+				if (params != null && params.equals(lNode.getListaTipos())) {
+					type = h_tipoBase;
+				} else {
+					error(previous(), "Parámetros incorrectos en llamada a función '" + h_lexema + "'");
+					type = Type.ERROR;
+				}
+			} else {
+				error(previous(), "'" + h_lexema + "' no es una función");
+				type = Type.ERROR;
+			}
+		} else {
+			reglasAplicadas.add(39);
+			if (h_categoria == Category.VARIABLE) {
+				type = h_tipoBase;
+			} else {
+				error(previous(), "'" + h_lexema + "' no es una variable");
+				type = Type.ERROR;
+			}
+		}
+		node.setSemanticType(type);
+		return node;
+	}
+
+	// 40: L -> E Q | 41: L -> lambda
+	private ASTNode L() {
+		ASTNode node = new ASTNode("L");
+		List<Type> lista = new ArrayList<>();
+		if (checkAny("id", "parenIzq", "entero", "real", "cadena", "true", "false")) {
+			reglasAplicadas.add(40);
+			ASTNode eNode = E();
+			node.addChild(eNode);
+			ASTNode qNode = Q();
+			node.addChild(qNode);
+
+			lista.add(eNode.getSemanticType());
+			if (qNode.getListaTipos() != null) {
+				lista.addAll(qNode.getListaTipos());
+			}
+		} else {
+			reglasAplicadas.add(41);
+		}
+		node.setListaTipos(lista);
+		return node;
+	}
+
+	// 42: Q -> coma E Q | 43: Q -> lambda
+	private ASTNode Q() {
+		ASTNode node = new ASTNode("Q");
+		List<Type> lista = new ArrayList<>();
+		if (match("coma")) {
+			reglasAplicadas.add(42);
+			node.addChild(new ASTNode("coma"));
+			ASTNode eNode = E();
+			node.addChild(eNode);
+			ASTNode qNode = Q();
+			node.addChild(qNode);
+
+			lista.add(eNode.getSemanticType());
+			if (qNode.getListaTipos() != null) {
+				lista.addAll(qNode.getListaTipos());
+			}
+		} else {
+			reglasAplicadas.add(43);
+		}
+		node.setListaTipos(lista);
+		return node;
+	}
+
+	// 44: S -> id S2 | 45: S -> PRwrite E puntoComa | 46: S -> PRread id puntoComa
+	// | 47: S -> S1 puntoComa
+	private ASTNode S() {
+		ASTNode node = new ASTNode("S");
+		Type type = Type.ERROR;
+		if (match("id")) {
+			reglasAplicadas.add(44);
+			Token idTok = previous();
+			node.addChild(new ASTNode("id(" + idTok.getLexeme() + ")"));
+
+			Type tipoId = ts.buscarTipo(idTok.getLexeme());
+			Category catId = ts.buscarCategoria(idTok.getLexeme());
+
+			ASTNode s2Node = S2(tipoId, catId, idTok.getLexeme());
+			node.addChild(s2Node);
+			type = s2Node.getSemanticType();
+		} else if (match("PRwrite")) {
+			reglasAplicadas.add(45);
+			node.addChild(new ASTNode("PRwrite"));
+			ASTNode eNode = E();
+			node.addChild(eNode);
+			consume("puntoComa", "Falta ';'");
+			if (eNode.getSemanticType() != Type.ERROR) {
+				type = Type.OK;
+			} else {
+				error(previous(), "Error en expresión de 'write'");
+				type = Type.ERROR;
+			}
+		} else if (match("PRread")) {
+			reglasAplicadas.add(46);
+			node.addChild(new ASTNode("PRread"));
+			Token idTok = consume("id", "Se esperaba identificador en read");
+			node.addChild(new ASTNode("id(" + idTok.getLexeme() + ")"));
+			consume("puntoComa", "Falta ';'");
+			if (ts.existe(idTok.getLexeme())) {
+				type = Type.OK;
+			} else {
+				error(idTok, "Variable '" + idTok.getLexeme() + "' no declarada");
+				type = Type.ERROR;
+			}
+		} else if (checkAny("PRreturn")) {
+			reglasAplicadas.add(47);
+			ASTNode s1Node = S1();
+			node.addChild(s1Node);
+			consume("puntoComa", "Falta ';' tras return");
+			type = s1Node.getSemanticType();
+		} else {
+			error(peek(), "Sentencia no válida");
+		}
+		node.setSemanticType(type);
+		return node;
+	}
+
+	// 48: S1 -> PRreturn X
+	private ASTNode S1() {
+		reglasAplicadas.add(48);
+		ASTNode node = new ASTNode("S1");
+		consume("PRreturn", "Falta 'return'");
+		node.addChild(new ASTNode("PRreturn"));
+		ASTNode xNode = X();
+		node.addChild(xNode);
+		node.setSemanticType(xNode.getSemanticType());
+		return node;
+	}
+
+	// 49: S2 -> W E puntoComa | 50: S2 -> parenIzq L parenDcha puntoComa
+	private ASTNode S2(Type h_tipoBase, Category h_categoria, String h_lexema) {
+		ASTNode node = new ASTNode("S2");
+		Type type = Type.ERROR;
+		if (checkAny("igual", "asigDiv")) {
+			reglasAplicadas.add(49);
+			node.addChild(W());
+			ASTNode eNode = E();
+			node.addChild(eNode);
+			consume("puntoComa", "Falta ';'");
+
+			if (h_categoria == Category.VARIABLE) {
+				if (h_tipoBase == eNode.getSemanticType()) {
+					type = Type.OK;
+				} else {
+					error(previous(),
+							"Tipos incompatibles en asignación: " + h_tipoBase + " y " + eNode.getSemanticType());
+					type = Type.ERROR;
+				}
+			} else {
+				error(previous(), "'" + h_lexema + "' no es una variable");
+				type = Type.ERROR;
+			}
+		} else if (match("parenIzq")) {
+			reglasAplicadas.add(50);
+			node.addChild(new ASTNode("parenIzq"));
+			ASTNode lNode = L();
+			node.addChild(lNode);
+			consume("parenDcha", "Falta ')'");
+			consume("puntoComa", "Falta ';'");
+
+			if (h_categoria == Category.FUNCION) {
+				List<Type> params = ts.buscarParams(h_lexema);
+				if (params != null && params.equals(lNode.getListaTipos())) {
+					type = Type.OK;
+				} else {
+					error(previous(), "Parámetros incorrectos en llamada a función '" + h_lexema + "'");
+					type = Type.ERROR;
+				}
+			} else {
+				error(previous(), "'" + h_lexema + "' no es una función");
+				type = Type.ERROR;
+			}
+		} else {
+			error(peek(), "Se esperaba asignación o llamada");
+		}
+		node.setSemanticType(type);
+		return node;
+	}
+
+	// 51: W -> igual | 52: W -> asigDiv
+	private ASTNode W() {
+		ASTNode node = new ASTNode("W");
+		if (match("igual")) {
+			reglasAplicadas.add(51);
+			node.addChild(new ASTNode("igual"));
+		} else if (match("asigDiv")) {
+			reglasAplicadas.add(52);
+			node.addChild(new ASTNode("asigDiv"));
+		} else {
+			error(peek(), "Se esperaba '=' o '/='");
+		}
+		return node;
+	}
+
+	// 53: X -> E | 54: X -> lambda
+	private ASTNode X() {
+		ASTNode node = new ASTNode("X");
+		Type type;
+		if (checkAny("id", "parenIzq", "entero", "real", "cadena", "true", "false")) {
+			reglasAplicadas.add(53);
+			ASTNode eNode = E();
+			node.addChild(eNode);
+			type = eNode.getSemanticType();
+		} else {
+			reglasAplicadas.add(54);
+			type = Type.VOID;
+		}
+		node.setSemanticType(type);
+		return node;
+	}
+
+	// 55: C -> B C | 56: C -> lambda
+	private ASTNode C() {
+		ASTNode node = new ASTNode("C");
+		Type type;
+		if (checkAny("PRlet", "PRif", "PRfor", "id", "PRwrite", "PRread")) {
+			reglasAplicadas.add(55);
+			ASTNode bNode = B();
+			node.addChild(bNode);
+			ASTNode cNode = C();
+			node.addChild(cNode);
+			type = (bNode.getSemanticType() == Type.OK && cNode.getSemanticType() == Type.OK) ? Type.OK : Type.ERROR;
+		} else {
+			reglasAplicadas.add(56);
+			type = Type.OK;
+		}
+		node.setSemanticType(type);
+		return node;
+	}
+
+	public String getErrores() {
+		return errores.toString();
+	}
+
+	public boolean hasErrores() {
+		return hayErrores;
+	}
+
+	private boolean match(String... types) {
+		for (String type : types) {
+			if (checkAny(type)) {
+				advance();
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private boolean checkAny(String... types) {
+		if (isAtEnd())
+			return false;
+		String currentType = peek().getType();
+		for (String type : types) {
+			if (currentType.equals(type)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private Token advance() {
+		if (!isAtEnd())
+			current++;
+		return previous();
+	}
+
+	private boolean isAtEnd() {
+		return "finFich".equals(peek().getType());
+	}
+
+	private Token peek() {
+		return tokens.get(current);
+	}
+
+	private Token previous() {
+		return tokens.get(current - 1);
+	}
+
+	private Token consume(String type, String message) {
+		if (checkAny(type))
+			return advance();
+		error(peek(), message);
+		return advance();
+	}
+
+	private void error(Token token, String message) {
+		hayErrores = true;
+		errores.append("[ERROR - Línea ").append(token.getLine()).append("]: ").append(message).append("\n");
+	}
 }

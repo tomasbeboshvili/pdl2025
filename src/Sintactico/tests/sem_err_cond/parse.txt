@@ -1,0 +1,23 @@
+P1
+  P
+    B
+      PRif
+      E
+        R
+          U
+            V
+              entero
+            U1
+          R1
+        E1
+      S
+        PRwrite
+        E
+          R
+            U
+              V
+                entero
+              U1
+            R1
+          E1
+    P
