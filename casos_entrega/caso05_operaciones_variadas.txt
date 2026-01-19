@@ -1,0 +1,64 @@
+Caso de Prueba: caso05_operaciones_variadas (Correcto)
+
+Código :
+let float x;
+let float y;
+x = 10.0;
+y = 2.0;
+x /= 2.0;
+// Solo tenemos + y /=
+x = x + y;
+x /= y;
+
+------------------------------
+Tokens
+<PRlet, let>
+<PRfloat, float>
+<x,1>
+<puntoComa, ;>
+<PRlet, let>
+<PRfloat, float>
+<y,2>
+<puntoComa, ;>
+<x,1>
+<igual, =>
+<real, 10.0>
+<puntoComa, ;>
+<y,2>
+<igual, =>
+<real, 2.0>
+<puntoComa, ;>
+<x,1>
+<asigDiv, /=>
+<real, 2.0>
+<puntoComa, ;>
+<x,1>
+<igual, =>
+<x,1>
+<opSuma, +>
+<y,2>
+<puntoComa, ;>
+<x,1>
+<asigDiv, /=>
+<y,2>
+<puntoComa, ;>
+<finFich, >
+------------------------------
+tabla de simbolos
+LEXEMA: 'x'
+  TIPO: REAL
+  DESPLAZAMIENTO: 0
+------------------------------------------
+LEXEMA: 'y'
+  TIPO: REAL
+  DESPLAZAMIENTO: 4
+------------------------------------------
+
+------------------------------
+Reglas para VAST
+descendente 1 2 5 10 2 5 10 2 8 44 49 51 22 25 28 34 30 27 24 2 8 44 49 51 22 25 28 34 30 27 24 2 8 44 49 52 22 25 28 34 30 27 24 2 8 44 49 51 22 25 28 31 39 29 31 39 30 27 24 2 8 44 49 52 22 25 28 31 39 30 27 24 4
+------------------------------
+Arbol generado
+
+
+

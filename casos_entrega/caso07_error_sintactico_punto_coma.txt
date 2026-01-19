@@ -1,29 +1,39 @@
 Caso de Prueba: caso07_error_sintactico_punto_coma (Incorrecto)
 
 Código :
-let int a
-a = 5;
+let string mensaje;
+mensaje = 'Hola' // Falta punto y coma
+let int largo;
+largo = 4;
 
 ------------------------------
 Tokens
 <PRlet, let>
-<PRint, int>
-<a,1>
-<a,1>
+<PRstring, string>
+<mensaje,1>
+<puntoComa, ;>
+<mensaje,1>
 <igual, =>
-<entero, 5>
+<cadena, Hola>
+<PRlet, let>
+<PRint, int>
+<largo,2>
+<puntoComa, ;>
+<largo,2>
+<igual, =>
+<entero, 4>
 <puntoComa, ;>
 <finFich, >
 ------------------------------
 tabla de simbolos
-LEXEMA: 'a'
-  TIPO: ENTERO
+LEXEMA: 'mensaje'
+  TIPO: CADENA
   DESPLAZAMIENTO: 0
 ------------------------------------------
 
 ------------------------------
 Errores Detectados
-[ERROR SINTÁCTICO - Línea 2]: Se esperaba ';' tras declaración
+[ERROR SINTÁCTICO - Línea 3]: Se esperaba ';'
 
 ------------------------------
 Arbol generado

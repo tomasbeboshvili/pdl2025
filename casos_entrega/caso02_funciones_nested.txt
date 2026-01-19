@@ -1,0 +1,76 @@
+Caso de Prueba: caso02_funciones_nested (Correcto)
+
+Código :
+function int cuadrado(int n) {
+    return n + n; // Imaginamos que es n*n, pero solo tenemos + y comparadores
+}
+let int lado;
+let int resultado;
+lado = 4;
+resultado = cuadrado(lado);
+
+------------------------------
+Tokens
+<PRfun, function>
+<PRint, int>
+<cuadrado,1>
+<parenIzq, (>
+<PRint, int>
+<n,2>
+<parenDcha, )>
+<llaveIzq, {>
+<PRreturn, return>
+<n,2>
+<opSuma, +>
+<n,2>
+<puntoComa, ;>
+<llaveDcha, }>
+<PRlet, let>
+<PRint, int>
+<lado,3>
+<puntoComa, ;>
+<PRlet, let>
+<PRint, int>
+<resultado,4>
+<puntoComa, ;>
+<lado,3>
+<igual, =>
+<entero, 4>
+<puntoComa, ;>
+<resultado,4>
+<igual, =>
+<cuadrado,1>
+<parenIzq, (>
+<lado,3>
+<parenDcha, )>
+<puntoComa, ;>
+<finFich, >
+------------------------------
+tabla de simbolos
+LEXEMA: 'n'
+  TIPO: ENTERO
+  DESPLAZAMIENTO: 0
+------------------------------------------
+LEXEMA: 'cuadrado'
+  TIPO: FUNCION
+  RETORNO: ENTERO
+  NUM_PARAMS: 1
+  TIPOS_PARAMS: [ENTERO]
+------------------------------------------
+LEXEMA: 'lado'
+  TIPO: ENTERO
+  DESPLAZAMIENTO: 2
+------------------------------------------
+LEXEMA: 'resultado'
+  TIPO: ENTERO
+  DESPLAZAMIENTO: 4
+------------------------------------------
+
+------------------------------
+Reglas para VAST
+descendente 1 3 13 9 18 9 21 56 16 48 53 22 25 28 31 39 29 31 39 30 27 24 2 5 9 2 5 9 2 8 44 49 51 22 25 28 33 30 27 24 2 8 44 49 51 22 25 28 31 38 40 22 25 28 31 39 30 27 24 43 30 27 24 4
+------------------------------
+Arbol generado
+
+
+

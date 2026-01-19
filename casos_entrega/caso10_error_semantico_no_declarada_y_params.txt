@@ -1,0 +1,88 @@
+Caso de Prueba: caso10_error_semantico_no_declarada_y_params (Incorrecto)
+
+Código :
+let int x;
+let int y;
+x = 5;
+y = 10;
+
+function int doble(int n) {
+    return n + n;
+}
+x = doble(true); // Parametro boolean en lugar de int
+z = 5; // z no declarada
+
+------------------------------
+Tokens
+<PRlet, let>
+<PRint, int>
+<x,1>
+<puntoComa, ;>
+<PRlet, let>
+<PRint, int>
+<y,2>
+<puntoComa, ;>
+<x,1>
+<igual, =>
+<entero, 5>
+<puntoComa, ;>
+<y,2>
+<igual, =>
+<entero, 10>
+<puntoComa, ;>
+<PRfun, function>
+<PRint, int>
+<doble,3>
+<parenIzq, (>
+<PRint, int>
+<n,4>
+<parenDcha, )>
+<llaveIzq, {>
+<PRreturn, return>
+<n,4>
+<opSuma, +>
+<n,4>
+<puntoComa, ;>
+<llaveDcha, }>
+<x,1>
+<igual, =>
+<doble,3>
+<parenIzq, (>
+<true, true>
+<parenDcha, )>
+<puntoComa, ;>
+<z,5>
+<igual, =>
+<entero, 5>
+<puntoComa, ;>
+<finFich, >
+------------------------------
+tabla de simbolos
+LEXEMA: 'n'
+  TIPO: ENTERO
+  DESPLAZAMIENTO: 4
+------------------------------------------
+LEXEMA: 'x'
+  TIPO: ENTERO
+  DESPLAZAMIENTO: 0
+------------------------------------------
+LEXEMA: 'y'
+  TIPO: ENTERO
+  DESPLAZAMIENTO: 2
+------------------------------------------
+LEXEMA: 'doble'
+  TIPO: FUNCION
+  RETORNO: ENTERO
+  NUM_PARAMS: 1
+  TIPOS_PARAMS: [ENTERO]
+------------------------------------------
+
+------------------------------
+Errores Detectados
+[ERROR SINTÁCTICO - Línea 9]: Parámetros incorrectos en llamada a función 'doble'
+[ERROR SEMÁNTICO - Línea 9]: Tipos incompatibles en asignación: ENTERO y ERROR
+[ERROR SEMÁNTICO - Línea 10]: 'z' no es una variable
+
+------------------------------
+Arbol generado
+(No se genera árbol debido a errores)

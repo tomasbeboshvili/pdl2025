@@ -27,72 +27,102 @@ public class CaseGenerator {
 
 		// --- CASOS CORRECTOS ---
 
-		cases.add(new TestCase("caso01_declaraciones",
-				"let int a;\n" +
-						"let float b;\n" +
-						"let string s;\n" +
-						"a = 10;\n" +
-						"b = 3.14;\n" +
-						"s = 'hola';\n",
+		cases.add(new TestCase("caso01_declaraciones_tipos",
+				"let int contador;\n" +
+						"let float radio;\n" +
+						"let float area;\n" +
+						"let string nombre;\n" +
+						"let boolean activo;\n" +
+						"contador = 100;\n" +
+						"radio = 5.5;\n" +
+						"area = 0.0;\n" +
+						"nombre = 'Juan';\n" +
+						"activo = true;\n",
 				"Correcto"));
 
-		cases.add(new TestCase("caso02_funcion_llamada",
-				"function int suma(int x) {\n" +
-						"    return x + 1;\n" +
+		cases.add(new TestCase("caso02_funciones_nested",
+				"function int cuadrado(int n) {\n" +
+						"    return n + n; // Imaginamos que es n*n, pero solo tenemos + y comparadores\n" +
 						"}\n" +
-						"let int res;\n" +
-						"res = suma(5);\n",
+						"let int lado;\n" +
+						"let int resultado;\n" +
+						"lado = 4;\n" +
+						"resultado = cuadrado(lado);\n",
 				"Correcto"));
 
-		cases.add(new TestCase("caso03_bucle_for",
+		cases.add(new TestCase("caso03_bucle_for_infinito",
 				"let int i;\n" +
-						"let int total;\n" +
-						"total = 0;\n" +
-						"for (i = 0; i < 10; i = i + 1) {\n" +
-						"    total = total + i;\n" +
+						"let int suma;\n" +
+						"suma = 0;\n" +
+						"// Bucle con condicion siempre true (valido semanticamente)\n" +
+						"for (i = 0; true; i = i + 1) {\n" +
+						"    suma = suma + i;\n" +
+						"    if (i == 10) suma = 0;\n" +
 						"}\n",
 				"Correcto"));
 
-		cases.add(new TestCase("caso04_condicional",
-				"let int x;\n" +
-						"x = 5;\n" +
-						"if (x > 0 && x < 10) {\n" +
-						"    x = 0;\n" +
-						"}\n",
+		cases.add(new TestCase("caso04_condicional_complejo",
+				"let int puntaje;\n" +
+						"let boolean pasa;\n" +
+						"puntaje = 60;\n" +
+						"pasa = false;\n" +
+						"// Usamos == y && que si estan soportados en lexico y gramatica\n" +
+						"if (puntaje == 60 && true) pasa = true;\n",
 				"Correcto"));
 
-		cases.add(new TestCase("caso05_asignacion_compuesta",
+		cases.add(new TestCase("caso05_operaciones_variadas",
 				"let float x;\n" +
-						"x = 20.0;\n" +
+						"let float y;\n" +
+						"x = 10.0;\n" +
+						"y = 2.0;\n" +
 						"x /= 2.0;\n" +
-						"x = x + 1.5;\n",
+						"// Solo tenemos + y /=\n" +
+						"x = x + y;\n" +
+						"x /= y;\n",
 				"Correcto"));
 
 		// --- CASOS INCORRECTOS ---
 
-		cases.add(new TestCase("caso06_error_lexico",
-				"let int @var;\n" +
-						"let int j#;\n",
+		cases.add(new TestCase("caso06_error_lexico_simbolos",
+				"let int usuario;\n" +
+						"usuario = 1;\n" +
+						"// @ y # no estan permitidos\n" +
+						"if (usuario == 1) usuario = 2; @ \n",
 				"Incorrecto"));
 
 		cases.add(new TestCase("caso07_error_sintactico_punto_coma",
-				"let int a\n" +
-						"a = 5;\n",
+				"let string mensaje;\n" +
+						"mensaje = 'Hola' // Falta punto y coma\n" +
+						"let int largo;\n" +
+						"largo = 4;\n",
 				"Incorrecto"));
 
 		cases.add(new TestCase("caso08_error_sintactico_parentesis",
-				"if (5 > 3 {\n" +
-						"    let int x;\n" +
-						"}\n",
-				"Incorrecto"));
-
-		cases.add(new TestCase("caso09_error_semantico_tipos",
 				"let int a;\n" +
-						"a = 'texto';\n",
+						"a = 10;\n" +
+						"// Falta parentesis de cierre\n" +
+						"if (a == 10 a = 0;\n",
 				"Incorrecto"));
 
-		cases.add(new TestCase("caso10_error_semantico_no_declarada",
-				"a = 5;\n",
+		cases.add(new TestCase("caso09_error_semantico_tipos_incompatibles",
+				"let int edad;\n" +
+						"let string texto;\n" +
+						"edad = 25;\n" +
+						"texto = 'Veinticinco';\n" +
+						"edad = texto; // Error: asignar string a int\n",
+				"Incorrecto"));
+
+		cases.add(new TestCase("caso10_error_semantico_no_declarada_y_params",
+				"let int x;\n" +
+						"let int y;\n" +
+						"x = 5;\n" +
+						"y = 10;\n" +
+						"\n" +
+						"function int doble(int n) {\n" +
+						"    return n + n;\n" +
+						"}\n" +
+						"x = doble(true); // Parametro boolean en lugar de int\n" +
+						"z = 5; // z no declarada\n",
 				"Incorrecto"));
 
 		// --- EJECUCIÓN ---
@@ -119,12 +149,9 @@ public class CaseGenerator {
 		List<Token> tokens = lexer.tokenize();
 
 		Parser parser = new Parser(tokens, errorManager);
-		// Ejecutamos análisis solo si no hay errores léxicos graves que impidan parsear
-		// aunque tu lexer siempre devuelve tokens.
 		try {
 			parser.parseAST();
 		} catch (Exception e) {
-			// En caso de panic mode fallido (raro), capturamos.
 		}
 
 		StringBuilder output = new StringBuilder();
@@ -142,8 +169,7 @@ public class CaseGenerator {
 		}
 		output.append("------------------------------\n");
 
-		// 3. Tabla de Símbolos (siempre la imprimimos, incluso con errores puede haber
-		// parciales)
+		// 3. Tabla de Símbolos
 		output.append("tabla de simbolos\n");
 		output.append(parser.getTS().toString()).append("\n");
 		output.append("------------------------------\n");
@@ -160,11 +186,9 @@ public class CaseGenerator {
 			output.append(parser.getReglasAplicadasLinea()).append("\n");
 			output.append("------------------------------\n");
 			output.append("Arbol generado\n");
-			// Espacio para pegar la imagen/texto del árbol manual
 			output.append("\n\n\n");
 		}
 
-		// Escribir a fichero
 		try (BufferedWriter writer = Files.newBufferedWriter(outDir.resolve(tc.name + ".txt"))) {
 			writer.write(output.toString());
 		} catch (IOException e) {

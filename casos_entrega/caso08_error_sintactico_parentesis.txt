@@ -1,32 +1,42 @@
 Caso de Prueba: caso08_error_sintactico_parentesis (Incorrecto)
 
 Código :
-if (5 > 3 {
-    let int x;
-}
+let int a;
+a = 10;
+// Falta parentesis de cierre
+if (a == 10 a = 0;
 
 ------------------------------
 Tokens
-<PRif, if>
-<parenIzq, (>
-<entero, 5>
-<entero, 3>
-<llaveIzq, {>
 <PRlet, let>
 <PRint, int>
-<x,1>
+<a,1>
 <puntoComa, ;>
-<llaveDcha, }>
+<a,1>
+<igual, =>
+<entero, 10>
+<puntoComa, ;>
+<PRif, if>
+<parenIzq, (>
+<a,1>
+<opIgual, ==>
+<entero, 10>
+<a,1>
+<igual, =>
+<entero, 0>
+<puntoComa, ;>
 <finFich, >
 ------------------------------
 tabla de simbolos
+LEXEMA: 'a'
+  TIPO: ENTERO
+  DESPLAZAMIENTO: 0
+------------------------------------------
 
 ------------------------------
 Errores Detectados
-[ERROR LÉXICO - Línea 1]: Símbolo no reconocido: '>'
-[ERROR SINTÁCTICO - Línea 1]: Se esperaba ')' tras la condición
-[ERROR SINTÁCTICO - Línea 1]: Sentencia no válida
-[ERROR SEMÁNTICO - Línea 1]: La condición del 'if' debe ser boolean
+[ERROR SINTÁCTICO - Línea 4]: Se esperaba ')' tras la condición
+[ERROR SINTÁCTICO - Línea 4]: Sentencia no válida
 
 ------------------------------
 Arbol generado

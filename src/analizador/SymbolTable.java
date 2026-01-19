@@ -156,12 +156,11 @@ public class SymbolTable {
 	private void logScope(Map<String, SymbolInfo> scope, StringBuilder target) {
 		for (SymbolInfo info : scope.values()) {
 			target.append("LEXEMA: '").append(info.lexeme).append("'\n");
-			target.append("  TIPO: ").append(info.type).append("\n");
-			// target.append(" CATEGORIA: ").append(info.category).append("\n"); // Opcional
-			// si se quiere mas compacto
 			if (info.category == Category.VARIABLE) {
+				target.append("  TIPO: ").append(info.type).append("\n");
 				target.append("  DESPLAZAMIENTO: ").append(info.desplazamiento).append("\n");
 			} else if (info.category == Category.FUNCION) {
+				target.append("  TIPO: FUNCION\n");
 				target.append("  RETORNO: ").append(info.type).append("\n");
 				target.append("  NUM_PARAMS: ").append(info.params.size()).append("\n");
 				target.append("  TIPOS_PARAMS: ").append(info.params).append("\n");
