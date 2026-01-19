@@ -1,1 +1,1 @@
-Sin errores detectados.
+[ERROR SINTÁCTICO - Línea 14]: Se esperaba ';'

@@ -1,5 +1,12 @@
-Tabla de Símbolos:
-a|1
-b|2
-s|3
-saludar|4
+LEXEMA: 'a'
+  TIPO: ENTERO
+  DESPLAZAMIENTO: 0
+------------------------------------------
+LEXEMA: 'b'
+  TIPO: REAL
+  DESPLAZAMIENTO: 2
+------------------------------------------
+LEXEMA: 's'
+  TIPO: CADENA
+  DESPLAZAMIENTO: 6
+------------------------------------------

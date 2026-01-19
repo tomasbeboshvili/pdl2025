@@ -11,7 +11,7 @@ for (a = 1; a == 5; a = a + 1) {
 }
 
 let string s;
-s = 'Hola Mundo';
+s = 'Hola Mundo''a';
 
 // Función con tipo de retorno
 function int saludar() {

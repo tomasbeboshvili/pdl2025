@@ -62,7 +62,7 @@ public class Main {
 		// 2. Fichero de Tabla de Símbolos
 		Path tablaPath = outDir.resolve("tabla_simbolos.txt");
 		try {
-			Files.writeString(tablaPath, lexer.printSymbolTable());
+			Files.writeString(tablaPath, parser.getTS().toString());
 		} catch (IOException e) {
 			System.err.println("No se pudo escribir tabla_simbolos.txt: " + e.getMessage());
 		}

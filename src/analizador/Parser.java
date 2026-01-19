@@ -84,7 +84,7 @@ public class Parser {
 			node.addChild(tNode);
 			Token idTok = consume("id", "Se esperaba identificador");
 			node.addChild(new ASTNode("id(" + idTok.getLexeme() + ")"));
-			consume("puntoComa", "Falta ';' tras declaración");
+			consume("puntoComa", "Se esperaba ';' tras declaración");
 
 			if (!ts.existeLocal(idTok.getLexeme())) {
 				ts.anadirVar(idTok.getLexeme(), tNode.getSemanticType());
@@ -116,13 +116,13 @@ public class Parser {
 			consume("parenIzq", "Se esperaba '(' tras for");
 			ASTNode f1Init = F1();
 			node.addChild(f1Init);
-			consume("puntoComa", "Falta ';' tras inicialización de for");
+			consume("puntoComa", "Se esperaba ';' tras inicialización de for");
 			ASTNode eNode = E();
 			node.addChild(eNode);
-			consume("puntoComa", "Falta ';' tras condición de for");
+			consume("puntoComa", "Se esperaba ';' tras condición de for");
 			ASTNode f1Incr = F1();
 			node.addChild(f1Incr);
-			consume("parenDcha", "Falta ')' tras incremento de for");
+			consume("parenDcha", "Se esperaba ')' tras incremento de for");
 			consume("llaveIzq", "Se esperaba '{' tras cabecera de for");
 			ASTNode cNode = C();
 			node.addChild(cNode);
@@ -200,19 +200,19 @@ public class Parser {
 		ts.anadirFunc(name.getLexeme(), tNode.getSemanticType());
 		ts.entrarAmbito();
 
-		consume("parenIzq", "Falta '(' en la cabecera");
+		consume("parenIzq", "Se esperaba '(' en la cabecera");
 		ASTNode zNode = Z();
 		node.addChild(zNode);
-		consume("parenDcha", "Falta ')' en la cabecera");
+		consume("parenDcha", "Se esperaba ')' en la cabecera");
 
 		ts.setParamsFunc(name.getLexeme(), zNode.getListaTipos());
 
-		consume("llaveIzq", "Falta '{' antes del cuerpo");
+		consume("llaveIzq", "Se esperaba '{' antes del cuerpo");
 		ASTNode cNode = C();
 		node.addChild(cNode);
 		ASTNode f2Node = F2();
 		node.addChild(f2Node);
-		consume("llaveDcha", "Falta '}' tras el cuerpo");
+		consume("llaveDcha", "Se esperaba '}' tras el cuerpo");
 
 		Type type;
 		if (f2Node.getSemanticType() == tNode.getSemanticType()) {
@@ -262,7 +262,7 @@ public class Parser {
 			reglasAplicadas.add(16);
 			ASTNode s1Node = S1();
 			node.addChild(s1Node);
-			consume("puntoComa", "Falta ';' tras return");
+			consume("puntoComa", "Se esperaba ';' tras return");
 			type = s1Node.getSemanticType();
 		} else {
 			reglasAplicadas.add(17);
@@ -623,7 +623,7 @@ public class Parser {
 			node.addChild(new ASTNode("PRwrite"));
 			ASTNode eNode = E();
 			node.addChild(eNode);
-			consume("puntoComa", "Falta ';'");
+			consume("puntoComa", "Se esperaba ';'");
 			if (eNode.getSemanticType() != Type.ERROR) {
 				type = Type.OK;
 			} else {
@@ -635,7 +635,7 @@ public class Parser {
 			node.addChild(new ASTNode("PRread"));
 			Token idTok = consume("id", "Se esperaba identificador en read");
 			node.addChild(new ASTNode("id(" + idTok.getLexeme() + ")"));
-			consume("puntoComa", "Falta ';'");
+			consume("puntoComa", "Se esperaba ';'");
 			if (ts.existe(idTok.getLexeme())) {
 				type = Type.OK;
 			} else {
@@ -646,7 +646,7 @@ public class Parser {
 			reglasAplicadas.add(47);
 			ASTNode s1Node = S1();
 			node.addChild(s1Node);
-			consume("puntoComa", "Falta ';' tras return");
+			consume("puntoComa", "Se esperaba ';' tras return");
 			type = s1Node.getSemanticType();
 		} else {
 			error(peek(), "Sentencia no válida"); // Sintáctico
@@ -659,7 +659,7 @@ public class Parser {
 	private ASTNode S1() {
 		reglasAplicadas.add(48);
 		ASTNode node = new ASTNode("S1");
-		consume("PRreturn", "Falta 'return'");
+		consume("PRreturn", "Se esperaba 'return'");
 		node.addChild(new ASTNode("PRreturn"));
 		ASTNode xNode = X();
 		node.addChild(xNode);
@@ -676,7 +676,7 @@ public class Parser {
 			node.addChild(W());
 			ASTNode eNode = E();
 			node.addChild(eNode);
-			consume("puntoComa", "Falta ';'");
+			consume("puntoComa", "Se esperaba ';'");
 
 			if (h_categoria == Category.VARIABLE) {
 				if (h_tipoBase == eNode.getSemanticType()) {
@@ -695,8 +695,8 @@ public class Parser {
 			node.addChild(new ASTNode("parenIzq"));
 			ASTNode lNode = L();
 			node.addChild(lNode);
-			consume("parenDcha", "Falta ')'");
-			consume("puntoComa", "Falta ';'");
+			consume("parenDcha", "Se esperaba ')'");
+			consume("puntoComa", "Se esperaba ';'");
 
 			if (h_categoria == Category.FUNCION) {
 				List<Type> params = ts.buscarParams(h_lexema);
@@ -841,5 +841,9 @@ public class Parser {
 
 	private void errorSemantico(Token token, String message) {
 		errorManager.agregarError("SEMÁNTICO", token.getLine(), message);
+	}
+
+	public SymbolTable getTS() {
+		return ts;
 	}
 }
