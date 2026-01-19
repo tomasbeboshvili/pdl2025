@@ -1,0 +1,1 @@
+[ERROR SINTÁCTICO - Línea 10]: Falta ';' tras return

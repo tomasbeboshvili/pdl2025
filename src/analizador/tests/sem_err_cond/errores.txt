@@ -1,0 +1,1 @@
+[ERROR SEMÁNTICO - Línea 1]: La condición del 'if' debe ser boolean

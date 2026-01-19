@@ -1,0 +1,1 @@
+[ERROR SEMÁNTICO - Línea 2]: Variable 'a' ya declarada

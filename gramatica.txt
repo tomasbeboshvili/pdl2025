@@ -1,0 +1,151 @@
+//// Gramática en formato tipo 2 para VASt
+
+Terminales = { PRboolean PRfloat PRfor PRfun PRif PRint PRlet PRread PRwrite PRreturn PRstring real entero cadena id asigDiv igual coma puntoComa parenIzq parenDcha llaveIzq llaveDcha opSuma opAnd opIgual false true finFich lambda } 
+
+NoTerminales = { B C E E1 F F1 F2 K L P P1 Q R R1 S S1 S2 T U U1 V V1 W X Z } 
+
+Axioma = P1 
+
+Producciones = { 
+
+P1 -> P 
+
+P  -> B P 
+
+P  -> F P 
+
+P  -> lambda 
+
+ 
+
+B  -> PRlet T id puntoComa 
+
+B  -> PRif parenIzq E parenDcha S 
+
+B  -> PRfor parenIzq F1 puntoComa E puntoComa F1 parenDcha llaveIzq C llaveDcha 
+
+B  -> S 
+
+ 
+
+T  -> PRint 
+
+T  -> PRfloat 
+
+T  -> PRboolean 
+
+T  -> PRstring  
+
+ 
+
+F  -> PRfun T id parenIzq Z parenDcha llaveIzq C F2 llaveDcha 
+
+F1 -> id W E 
+
+F1 -> lambda 
+
+F2 -> S1 puntoComa
+
+F2 -> lambda 
+
+ 
+
+Z  -> T id K 
+
+Z  -> lambda 
+
+  
+
+K  -> coma T id K 
+
+K  -> lambda 
+
+  
+
+E  -> R E1 
+
+E1 -> opAnd R E1 
+
+E1 -> lambda 
+
+  
+
+R  -> U R1 
+
+R1 -> opIgual U R1 
+
+R1 -> lambda 
+
+  
+
+U  -> V U1 
+
+U1 -> opSuma V U1 
+
+U1 -> lambda 
+
+V  -> id V1 
+
+V  -> parenIzq E parenDcha 
+
+V  -> entero 
+
+V  -> real 
+
+V  -> cadena 
+
+V  -> true 
+
+V  -> false 
+
+V1 -> parenIzq L parenDcha 
+
+V1 -> lambda 
+
+  
+
+L  -> E Q 
+
+L  -> lambda 
+
+  
+
+Q  -> coma E Q 
+
+Q  -> lambda 
+
+  
+
+S  -> id S2 
+
+S  -> PRwrite E puntoComa 
+
+S  -> PRread id puntoComa 
+
+S  -> S1 puntoComa 
+
+S1 -> PRreturn X 
+
+S2 -> W E puntoComa 
+
+S2 -> parenIzq L parenDcha puntoComa 
+
+  
+
+W  -> igual 
+
+W  -> asigDiv 
+
+  
+
+X  -> E 
+
+X  -> lambda 
+
+  
+
+C  -> B C 
+
+C  -> lambda 
+
+} 

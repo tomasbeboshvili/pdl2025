@@ -1,1 +1,0 @@
-[ERROR - Línea 2]: Tipos incompatibles en asignación: ENTERO y CADENA
