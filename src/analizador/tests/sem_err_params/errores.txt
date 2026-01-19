@@ -1,2 +1,0 @@
-[ERROR SINTÁCTICO - Línea 3]: Falta ';' tras return
-[ERROR SEMÁNTICO - Línea 4]: Parámetros incorrectos en llamada a función 'suma'

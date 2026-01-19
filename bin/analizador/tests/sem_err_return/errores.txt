@@ -1,2 +1,0 @@
-[ERROR SINTÁCTICO - Línea 3]: Falta ';' tras return
-[ERROR SEMÁNTICO - Línea 1]: Retorno incorrecto en funcion test

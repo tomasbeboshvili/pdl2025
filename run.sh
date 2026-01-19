@@ -17,7 +17,7 @@ fi
 # Ejecutar
 if [ -z "$1" ]; then
     # Si no se pasa argumento, usar el fichero de prueba por defecto
-    ARCHIVO="src/analizador/programa.javascript"
+    ARCHIVO="programa.javascript"
 else
     ARCHIVO="$1"
 fi

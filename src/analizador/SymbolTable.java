@@ -54,20 +54,6 @@ public class SymbolTable {
 
 	public void entrarAmbito() {
 		scopes.push(new LinkedHashMap<>());
-		// Reset offsets for local scope? Assuming simple accumulation or reset.
-		// For consistency with requirement "Desplazamiento (dirección de memoria)",
-		// often means offset from base pointer. So resetting to 0 for function scope
-		// makes sense.
-		// But in block scopes (if supported), it should continue.
-		// Since we have Function -> ... entrarAmbito ... it is likely function scope.
-		// We'll reset currentOffset for simplicity of presentation, or keep partial.
-		// Let's keep it simple: incrementing continuously or resetting?
-		// Requirement says "entero, real...: Desplazamiento".
-		// I'll leave it as continuing for now, as I don't store previous offset to
-		// restore it.
-		// Actually, standard stack machines reset offset for new frames.
-		// To do it right: push currentOffset to a stack too.
-		// But for now, let's just let it grow.
 	}
 
 	public void salirAmbito() {

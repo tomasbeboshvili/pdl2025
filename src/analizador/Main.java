@@ -15,10 +15,10 @@ import java.util.List;
 public class Main {
 
 	public static void main(String[] args) {
-		Path outDir = Paths.get("src", "analizador", "out");
+		Path outDir = Paths.get("out");
 		Path fuente = args.length > 0
 				? Paths.get(args[0])
-				: Paths.get("src", "analizador", "programa.javascript");
+				: Paths.get("programa.javascript");
 
 		try {
 			Files.createDirectories(outDir);
