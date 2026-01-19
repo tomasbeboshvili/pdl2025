@@ -1,0 +1,30 @@
+Caso de Prueba: caso07_error_sintactico_punto_coma (Incorrecto)
+
+Código :
+let int a
+a = 5;
+
+------------------------------
+Tokens
+<PRlet, let>
+<PRint, int>
+<a,1>
+<a,1>
+<igual, =>
+<entero, 5>
+<puntoComa, ;>
+<finFich, >
+------------------------------
+tabla de simbolos
+LEXEMA: 'a'
+  TIPO: ENTERO
+  DESPLAZAMIENTO: 0
+------------------------------------------
+
+------------------------------
+Errores Detectados
+[ERROR SINTÁCTICO - Línea 2]: Se esperaba ';' tras declaración
+
+------------------------------
+Arbol generado
+(No se genera árbol debido a errores)

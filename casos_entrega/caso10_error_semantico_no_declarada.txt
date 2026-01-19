@@ -1,0 +1,22 @@
+Caso de Prueba: caso10_error_semantico_no_declarada (Incorrecto)
+
+Código :
+a = 5;
+
+------------------------------
+Tokens
+<a,1>
+<igual, =>
+<entero, 5>
+<puntoComa, ;>
+<finFich, >
+------------------------------
+tabla de simbolos
+
+------------------------------
+Errores Detectados
+[ERROR SEMÁNTICO - Línea 1]: 'a' no es una variable
+
+------------------------------
+Arbol generado
+(No se genera árbol debido a errores)

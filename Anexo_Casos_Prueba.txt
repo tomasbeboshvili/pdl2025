@@ -1,0 +1,442 @@
+Caso de Prueba: caso01_declaraciones (Correcto)
+
+Código :
+let int a;
+let float b;
+let string s;
+a = 10;
+b = 3.14;
+s = 'hola';
+
+------------------------------
+Tokens
+<PRlet, let>
+<PRint, int>
+<a,1>
+<puntoComa, ;>
+<PRlet, let>
+<PRfloat, float>
+<b,2>
+<puntoComa, ;>
+<PRlet, let>
+<PRstring, string>
+<s,3>
+<puntoComa, ;>
+<a,1>
+<igual, =>
+<entero, 10>
+<puntoComa, ;>
+<b,2>
+<igual, =>
+<real, 3.14>
+<puntoComa, ;>
+<s,3>
+<igual, =>
+<cadena, hola>
+<puntoComa, ;>
+<finFich, >
+------------------------------
+tabla de simbolos
+LEXEMA: 'a'
+  TIPO: ENTERO
+  DESPLAZAMIENTO: 0
+------------------------------------------
+LEXEMA: 'b'
+  TIPO: REAL
+  DESPLAZAMIENTO: 2
+------------------------------------------
+LEXEMA: 's'
+  TIPO: CADENA
+  DESPLAZAMIENTO: 6
+------------------------------------------
+
+------------------------------
+Reglas para VAST
+descendente 1 2 5 9 2 5 10 2 5 12 2 8 44 49 51 22 25 28 33 30 27 24 2 8 44 49 51 22 25 28 34 30 27 24 2 8 44 49 51 22 25 28 35 30 27 24 4
+------------------------------
+Arbol generado
+
+
+
+Caso de Prueba: caso02_funcion_llamada (Correcto)
+
+Código :
+function int suma(int x) {
+    return x + 1;
+}
+let int res;
+res = suma(5);
+
+------------------------------
+Tokens
+<PRfun, function>
+<PRint, int>
+<suma,1>
+<parenIzq, (>
+<PRint, int>
+<x,2>
+<parenDcha, )>
+<llaveIzq, {>
+<PRreturn, return>
+<x,2>
+<opSuma, +>
+<entero, 1>
+<puntoComa, ;>
+<llaveDcha, }>
+<PRlet, let>
+<PRint, int>
+<res,3>
+<puntoComa, ;>
+<res,3>
+<igual, =>
+<suma,1>
+<parenIzq, (>
+<entero, 5>
+<parenDcha, )>
+<puntoComa, ;>
+<finFich, >
+------------------------------
+tabla de simbolos
+LEXEMA: 'x'
+  TIPO: ENTERO
+  DESPLAZAMIENTO: 0
+------------------------------------------
+LEXEMA: 'suma'
+  TIPO: ENTERO
+  RETORNO: ENTERO
+  NUM_PARAMS: 1
+  TIPOS_PARAMS: [ENTERO]
+------------------------------------------
+LEXEMA: 'res'
+  TIPO: ENTERO
+  DESPLAZAMIENTO: 2
+------------------------------------------
+
+------------------------------
+Reglas para VAST
+descendente 1 3 13 9 18 9 21 56 16 48 53 22 25 28 31 39 29 33 30 27 24 2 5 9 2 8 44 49 51 22 25 28 31 38 40 22 25 28 33 30 27 24 43 30 27 24 4
+------------------------------
+Arbol generado
+
+
+
+Caso de Prueba: caso03_bucle_for (Correcto)
+
+Código :
+let int i;
+let int total;
+total = 0;
+for (i = 0; i < 10; i = i + 1) {
+    total = total + i;
+}
+
+------------------------------
+Tokens
+<PRlet, let>
+<PRint, int>
+<i,1>
+<puntoComa, ;>
+<PRlet, let>
+<PRint, int>
+<total,2>
+<puntoComa, ;>
+<total,2>
+<igual, =>
+<entero, 0>
+<puntoComa, ;>
+<PRfor, for>
+<parenIzq, (>
+<i,1>
+<igual, =>
+<entero, 0>
+<puntoComa, ;>
+<i,1>
+<entero, 10>
+<puntoComa, ;>
+<i,1>
+<igual, =>
+<i,1>
+<opSuma, +>
+<entero, 1>
+<parenDcha, )>
+<llaveIzq, {>
+<total,2>
+<igual, =>
+<total,2>
+<opSuma, +>
+<i,1>
+<puntoComa, ;>
+<llaveDcha, }>
+<finFich, >
+------------------------------
+tabla de simbolos
+LEXEMA: 'i'
+  TIPO: ENTERO
+  DESPLAZAMIENTO: 0
+------------------------------------------
+LEXEMA: 'total'
+  TIPO: ENTERO
+  DESPLAZAMIENTO: 2
+------------------------------------------
+
+------------------------------
+Errores Detectados
+[ERROR LÉXICO - Línea 4]: Símbolo no reconocido: '<'
+[ERROR SINTÁCTICO - Línea 4]: Se esperaba ';' tras condición de for
+[ERROR SINTÁCTICO - Línea 4]: Se esperaba ')' tras incremento de for
+[ERROR SINTÁCTICO - Línea 4]: Se esperaba '{' tras cabecera de for
+[ERROR SINTÁCTICO - Línea 4]: Se esperaba '}' al cerrar el for
+[ERROR SEMÁNTICO - Línea 4]: La condición del 'for' debe ser boolean
+[ERROR SINTÁCTICO - Línea 4]: Se esperaba asignación o llamada
+
+------------------------------
+Arbol generado
+(No se genera árbol debido a errores)
+Caso de Prueba: caso04_condicional (Correcto)
+
+Código :
+let int x;
+x = 5;
+if (x > 0 && x < 10) {
+    x = 0;
+}
+
+------------------------------
+Tokens
+<PRlet, let>
+<PRint, int>
+<x,1>
+<puntoComa, ;>
+<x,1>
+<igual, =>
+<entero, 5>
+<puntoComa, ;>
+<PRif, if>
+<parenIzq, (>
+<x,1>
+<entero, 0>
+<opAnd, &&>
+<x,1>
+<entero, 10>
+<parenDcha, )>
+<llaveIzq, {>
+<x,1>
+<igual, =>
+<entero, 0>
+<puntoComa, ;>
+<llaveDcha, }>
+<finFich, >
+------------------------------
+tabla de simbolos
+LEXEMA: 'x'
+  TIPO: ENTERO
+  DESPLAZAMIENTO: 0
+------------------------------------------
+
+------------------------------
+Errores Detectados
+[ERROR LÉXICO - Línea 3]: Símbolo no reconocido: '>'
+[ERROR LÉXICO - Línea 3]: Símbolo no reconocido: '<'
+[ERROR SINTÁCTICO - Línea 3]: Se esperaba ')' tras la condición
+[ERROR SINTÁCTICO - Línea 3]: Sentencia no válida
+[ERROR SEMÁNTICO - Línea 3]: La condición del 'if' debe ser boolean
+
+------------------------------
+Arbol generado
+(No se genera árbol debido a errores)
+Caso de Prueba: caso05_asignacion_compuesta (Correcto)
+
+Código :
+let float x;
+x = 20.0;
+x /= 2.0;
+x = x + 1.5;
+
+------------------------------
+Tokens
+<PRlet, let>
+<PRfloat, float>
+<x,1>
+<puntoComa, ;>
+<x,1>
+<igual, =>
+<real, 20.0>
+<puntoComa, ;>
+<x,1>
+<asigDiv, /=>
+<real, 2.0>
+<puntoComa, ;>
+<x,1>
+<igual, =>
+<x,1>
+<opSuma, +>
+<real, 1.5>
+<puntoComa, ;>
+<finFich, >
+------------------------------
+tabla de simbolos
+LEXEMA: 'x'
+  TIPO: REAL
+  DESPLAZAMIENTO: 0
+------------------------------------------
+
+------------------------------
+Reglas para VAST
+descendente 1 2 5 10 2 8 44 49 51 22 25 28 34 30 27 24 2 8 44 49 52 22 25 28 34 30 27 24 2 8 44 49 51 22 25 28 31 39 29 34 30 27 24 4
+------------------------------
+Arbol generado
+
+
+
+Caso de Prueba: caso06_error_lexico (Incorrecto)
+
+Código :
+let int @var;
+let int j#;
+
+------------------------------
+Tokens
+<PRlet, let>
+<PRint, int>
+<var,1>
+<puntoComa, ;>
+<PRlet, let>
+<PRint, int>
+<j,2>
+<puntoComa, ;>
+<finFich, >
+------------------------------
+tabla de simbolos
+LEXEMA: 'var'
+  TIPO: ENTERO
+  DESPLAZAMIENTO: 0
+------------------------------------------
+LEXEMA: 'j'
+  TIPO: ENTERO
+  DESPLAZAMIENTO: 2
+------------------------------------------
+
+------------------------------
+Errores Detectados
+[ERROR LÉXICO - Línea 1]: Símbolo no reconocido: '@'
+[ERROR LÉXICO - Línea 2]: Símbolo no reconocido: '#'
+
+------------------------------
+Arbol generado
+(No se genera árbol debido a errores)
+Caso de Prueba: caso07_error_sintactico_punto_coma (Incorrecto)
+
+Código :
+let int a
+a = 5;
+
+------------------------------
+Tokens
+<PRlet, let>
+<PRint, int>
+<a,1>
+<a,1>
+<igual, =>
+<entero, 5>
+<puntoComa, ;>
+<finFich, >
+------------------------------
+tabla de simbolos
+LEXEMA: 'a'
+  TIPO: ENTERO
+  DESPLAZAMIENTO: 0
+------------------------------------------
+
+------------------------------
+Errores Detectados
+[ERROR SINTÁCTICO - Línea 2]: Se esperaba ';' tras declaración
+
+------------------------------
+Arbol generado
+(No se genera árbol debido a errores)
+Caso de Prueba: caso08_error_sintactico_parentesis (Incorrecto)
+
+Código :
+if (5 > 3 {
+    let int x;
+}
+
+------------------------------
+Tokens
+<PRif, if>
+<parenIzq, (>
+<entero, 5>
+<entero, 3>
+<llaveIzq, {>
+<PRlet, let>
+<PRint, int>
+<x,1>
+<puntoComa, ;>
+<llaveDcha, }>
+<finFich, >
+------------------------------
+tabla de simbolos
+
+------------------------------
+Errores Detectados
+[ERROR LÉXICO - Línea 1]: Símbolo no reconocido: '>'
+[ERROR SINTÁCTICO - Línea 1]: Se esperaba ')' tras la condición
+[ERROR SINTÁCTICO - Línea 1]: Sentencia no válida
+[ERROR SEMÁNTICO - Línea 1]: La condición del 'if' debe ser boolean
+
+------------------------------
+Arbol generado
+(No se genera árbol debido a errores)
+Caso de Prueba: caso09_error_semantico_tipos (Incorrecto)
+
+Código :
+let int a;
+a = 'texto';
+
+------------------------------
+Tokens
+<PRlet, let>
+<PRint, int>
+<a,1>
+<puntoComa, ;>
+<a,1>
+<igual, =>
+<cadena, texto>
+<puntoComa, ;>
+<finFich, >
+------------------------------
+tabla de simbolos
+LEXEMA: 'a'
+  TIPO: ENTERO
+  DESPLAZAMIENTO: 0
+------------------------------------------
+
+------------------------------
+Errores Detectados
+[ERROR SEMÁNTICO - Línea 2]: Tipos incompatibles en asignación: ENTERO y CADENA
+
+------------------------------
+Arbol generado
+(No se genera árbol debido a errores)
+Caso de Prueba: caso10_error_semantico_no_declarada (Incorrecto)
+
+Código :
+a = 5;
+
+------------------------------
+Tokens
+<a,1>
+<igual, =>
+<entero, 5>
+<puntoComa, ;>
+<finFich, >
+------------------------------
+tabla de simbolos
+
+------------------------------
+Errores Detectados
+[ERROR SEMÁNTICO - Línea 1]: 'a' no es una variable
+
+------------------------------
+Arbol generado
+(No se genera árbol debido a errores)

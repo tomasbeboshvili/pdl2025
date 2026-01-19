@@ -1,0 +1,52 @@
+Caso de Prueba: caso04_condicional (Correcto)
+
+Código :
+let int x;
+x = 5;
+if (x > 0 && x < 10) {
+    x = 0;
+}
+
+------------------------------
+Tokens
+<PRlet, let>
+<PRint, int>
+<x,1>
+<puntoComa, ;>
+<x,1>
+<igual, =>
+<entero, 5>
+<puntoComa, ;>
+<PRif, if>
+<parenIzq, (>
+<x,1>
+<entero, 0>
+<opAnd, &&>
+<x,1>
+<entero, 10>
+<parenDcha, )>
+<llaveIzq, {>
+<x,1>
+<igual, =>
+<entero, 0>
+<puntoComa, ;>
+<llaveDcha, }>
+<finFich, >
+------------------------------
+tabla de simbolos
+LEXEMA: 'x'
+  TIPO: ENTERO
+  DESPLAZAMIENTO: 0
+------------------------------------------
+
+------------------------------
+Errores Detectados
+[ERROR LÉXICO - Línea 3]: Símbolo no reconocido: '>'
+[ERROR LÉXICO - Línea 3]: Símbolo no reconocido: '<'
+[ERROR SINTÁCTICO - Línea 3]: Se esperaba ')' tras la condición
+[ERROR SINTÁCTICO - Línea 3]: Sentencia no válida
+[ERROR SEMÁNTICO - Línea 3]: La condición del 'if' debe ser boolean
+
+------------------------------
+Arbol generado
+(No se genera árbol debido a errores)

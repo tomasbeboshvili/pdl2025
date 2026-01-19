@@ -1,0 +1,31 @@
+Caso de Prueba: caso09_error_semantico_tipos (Incorrecto)
+
+Código :
+let int a;
+a = 'texto';
+
+------------------------------
+Tokens
+<PRlet, let>
+<PRint, int>
+<a,1>
+<puntoComa, ;>
+<a,1>
+<igual, =>
+<cadena, texto>
+<puntoComa, ;>
+<finFich, >
+------------------------------
+tabla de simbolos
+LEXEMA: 'a'
+  TIPO: ENTERO
+  DESPLAZAMIENTO: 0
+------------------------------------------
+
+------------------------------
+Errores Detectados
+[ERROR SEMÁNTICO - Línea 2]: Tipos incompatibles en asignación: ENTERO y CADENA
+
+------------------------------
+Arbol generado
+(No se genera árbol debido a errores)
